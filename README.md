@@ -34,9 +34,9 @@ Welcome to my GitHub profile! [I really enjoy my work, I am here to gain more ex
 
 ## 📈 My GitHub Stats
 
-- ![D0u81e-U-9ee]([https://github-readme-stats.vercel.app/api?username=D0u81e-U-9ee&show_icons=true&theme=radical](https://github.com/D0u81e-U-9ee))
+- ![D0u81e-U-9ee](https://github-readme-stats.vercel.app/api?username=D0u81e-U-9ee&show_icons=true&theme=radical)
 
-- ![Top Languages]([https://github-readme-stats.vercel.app/api/top-langs/?username=D0u81e-U-9ee&layout=compact&theme=radical](https://github.com/D0u81e-U-9ee)) . (https://github.com/D0u81e-U-9ee)
+- ![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=D0u81e-U-9ee&layout=compact&theme=radical)
 
 
 ---
