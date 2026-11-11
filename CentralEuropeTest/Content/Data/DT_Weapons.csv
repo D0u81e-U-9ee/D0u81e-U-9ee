@@ -1,0 +1,6 @@
+---,WeaponName,WeaponType,WeaponMesh,FireMode,BaseDamage,FireRate,bUseProjectile,RecoilPitch,AnimOverlayLayer,Range,SpreadDegrees,MagSize,ReloadTime,BurstCount,BurstInterval,HolsterSocket,HeadshotMultiplier,MeleeReach,MeleeRadius
+Fists,Fists,Unarmed,None,Melee,15,0.55,False,0,None,0,0,0,0,1,0.06,None,1,110,12
+Knife,Knife,Knife,None,Melee,40,0.7,False,0,None,0,0,0,0,1,0.06,None,1,140,4
+Pistol,Pistol,Pistol,None,Single,25,0.25,False,1.2,None,6000,0.6,15,1.4,1,0.06,holster_thigh_r,2,0,0
+AssaultRifle,AssaultRifle,Rifle,None,Auto,20,0.1,False,0.6,None,20000,0.9,30,2.1,3,0.06,spine_rifle_socket,2,0,0
+SniperRifle,SniperRifle,Sniper,None,Single,120,1.4,True,4,None,100000,0,5,2.8,1,0.06,spine_sniper_socket,2,0,0

@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.5",
+	"Category": "",
+	"Description": "Central European open world test environment with a modular character and combat framework.",
+	"Modules": [
+		{
+			"Name": "CentralEuropeTest",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [ "Engine", "EnhancedInput" ]
+		}
+	],
+	"Plugins": [
+		{ "Name": "Water", "Enabled": true },
+		{ "Name": "Landmass", "Enabled": true },
+		{ "Name": "ChaosVehiclesPlugin", "Enabled": true },
+		{ "Name": "PCG", "Enabled": true },
+		{ "Name": "PythonScriptPlugin", "Enabled": true },
+		{ "Name": "EditorScriptingUtilities", "Enabled": true }
+	]
+}
