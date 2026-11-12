@@ -18,7 +18,10 @@ authored assets** (inputs, weapons and targets are built in code, with placehold
 | `SourceArt/Terrain/` | Generated `heightmap_2017.png` (16-bit), `terrain_layout.json`, `terrain_preview.png` |
 | `SourceArt/Materials/LandscapeAutoWeights.ush` | Slope / height / snow weights for a material Custom node |
 | `Content/Data/DT_Weapons.csv` | Weapon rows, importable as a DataTable of `CEWeaponData` |
-| `Tools/ue/setup_level.py` | Editor script: lighting stack, PlayerStart, river / road markers |
+| `Tools/ue/build_world.py` | Editor script: builds the real level in one run (see below) |
+| `Tools/ue/setup_level.py` | Editor script: river / road / waterfall markers for laying water splines |
+| `Tools/generate_sounds.py`, `SourceArt/Audio/` | Synthesised placeholder sound set |
+| `Content/Python/init_unreal.py` | Runs at editor start: imports the sounds |
 
 ### C++ classes (parents for the Blueprints named in the design)
 
@@ -39,6 +42,8 @@ authored assets** (inputs, weapons and targets are built in code, with placehold
 | `UCEBlockMannequinComponent` | — | Asset-free animated stand-in body with hit volumes and weapon attach points |
 | `ACETerrainPreviewActor` | — | Runtime mesh of the heightmap with collision, lake plane and swimming |
 | `ACETestCart` | — | Kinematic stand-in vehicle (fast and truck profiles) for enter / exit and road-grade tests |
+| `UCEAudioSubsystem`, `ACEAmbienceActor` | — | Sound playback by name; position-based ambience mix |
+| `UCEEditorLibrary` | — | `ImportTerrainLandscape`, called by the build script |
 
 ## Controls
 
@@ -78,29 +83,41 @@ as the level contains a real Landscape. Disable it with `bAutoPreviewTerrain` on
   (tune the grip with `HandAttachOffset` on the combat component). The asset paths are editable on the
   character if your engine version lays the pack out differently.
 
-## Building the real level
+## Building the real level (one script)
 
-1. Steps 1–2 above.
-2. (Optional) Quick combat test in any level with a floor and a PlayerStart: set `bAutoPreviewTerrain` off.
-3. **Terrain level.**
-   1. *File → New Level → Open World* and save as `Content/Maps/L_CentralEuropeTest`. Delete the template landscape.
-   2. *Landscape mode → Manage → New → Import from File*: `SourceArt/Terrain/heightmap_2017.png`.
-      Section size **63×63**, sections per component **1×1**, components **32×32**, resolution **2017×2017**,
-      location **(-100800, -100800, 56000)**, scale **(100, 100, 250)**, World Partition grid size **2**.
-   3. *World Settings → World Partition*: runtime grid cell size **12800**, loading range **25600**.
-   4. *Tools → Execute Python Script* → `Tools/ue/setup_level.py` (lighting, PlayerStart, markers).
-   5. Water: add a **Water Body Lake** at Z = 0 around the south / west basin and a **Water Zone** at Z = 0;
-      lay **Water Body River** splines along the `River_*` markers (marker names carry the width),
-      and a **Water Body Exclusion Volume** at each `*_ExclusionCentre` marker.
-   6. Create the three data layers (`DL_Environment`, `DL_RoadsAndInfrastructure`, `DL_Spawners`) and assign actors.
-4. **Landscape material.** New material → Custom node with the contents of `LandscapeAutoWeights.ush`
-   (inputs `VertexNormalWS`, `WorldPos`, `Noise`; additional output `Snow`), blend four layer texture sets by
-   the returned weights, triplanar on the cliff layer, then lerp to snow.
-5. **Combat animation (optional).** Derive `BP_BaseCharacter` from `ACEBaseCharacter`, give it an Anim Blueprint
-   parented to `CECombatAnimInstance`, and add the sockets `hand_r_socket`, `holster_thigh_r`,
-   `spine_rifle_socket`, `spine_sniper_socket` to the mannequin skeleton.
-6. **Vehicles (optional).** Add the Vehicle template content, add a `CEVehicleSeatComponent` to its pawn Blueprint,
-   and place an `CEActorSpawner` with that Blueprint as `SpawnClass`.
+1. Open the project. On the first start after this update the editor adds Epic's **Starter Content** and
+   **Third Person** packs by itself (ground textures, wind / bird recordings, the UE5 Mannequin) and imports
+   the sound set. If either pack is missing afterwards, add it by hand: Content Browser → *Add* →
+   *Add Feature or Content Pack*.
+2. Menu **Tools → Execute Python Script…** and choose `Tools/ue/build_world.py`.
+3. Read the summary dialog. Each step reports OK or FAILED:
+   - creates the level `/Game/Maps/L_CentralEuropeTest`;
+   - builds the landscape material (slope / height / snow blending, textured from Starter Content, gravel
+     strip along the roads) and a rippling lake material;
+   - imports the heightmap as a real Landscape (1 m detail instead of the 4 m preview mesh);
+   - places the sun, sky light, sky atmosphere, volumetric clouds and height fog;
+   - places the PlayerStart, saves, and makes the level the startup map.
+4. Press Play. The preview mesh is gone; the lake surface and swimming still come from the stand-in until
+   Water plugin bodies are added.
+
+Still manual afterwards: Water plugin lake / rivers (`Tools/ue/setup_level.py` drops markers for the
+splines), World Partition conversion and data layers, HLOD, foliage, combat animation
+(`CECombatAnimInstance`, sockets on the skeleton), and real vehicles (add a `CEVehicleSeatComponent` to the
+vehicle pawn and spawn it with a `CEActorSpawner`).
+
+## Sound
+
+`Tools/generate_sounds.py` synthesises 26 placeholder sounds into `SourceArt/Audio` (gunshots per weapon,
+dry fire, reload, equip, bullet impact, hit confirm, melee swing / hit, footsteps ×4, jump, land, splash,
+swim stroke, target down, cart engine, and loops for wind, birds, lake, river and waterfall). They are made
+from filtered noise and tone sweeps: functional stand-ins, not recordings, and they have not been judged
+by ear. `Content/Python/init_unreal.py` imports them into `/Game/CE/Audio` when the editor starts.
+
+`UCEAudioSubsystem` plays a sound by its file name and skips missing ones, so any sound can be replaced by
+importing a better one under the same name. `ACEAmbienceActor` mixes the ambience from the listener's
+position: wind grows with altitude, birdsong fades above the tree line, the lake is heard near the shore,
+and river / waterfall emitters start when you come within earshot. Where Starter Content is installed its
+wind and bird recordings are used instead of the synthesised ones.
 
 ## Terrain facts (from the generator's own report)
 

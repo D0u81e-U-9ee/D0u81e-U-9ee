@@ -1,6 +1,7 @@
 #include "Test/CETestDummy.h"
 
 #include "CentralEuropeTest.h"
+#include "Audio/CEAudioSubsystem.h"
 #include "Combat/CEHealthComponent.h"
 #include "Character/CEBlockMannequinComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -63,6 +64,7 @@ void ACETestDummy::HandlePointDamage(AActor* DamagedActor, float Damage, AContro
 void ACETestDummy::HandleDeath(UCEHealthComponent* HealthComponent, AController* Killer)
 {
 	UE_LOG(LogCETest, Log, TEXT("%s destroyed (resets in %.0f s)"), *GetName(), Health->AutoReviveDelay);
+	UCEAudioSubsystem::PlayAt(this, TEXT("Target_Down"), GetActorLocation(), ECESoundRange::Mid);
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, FString::Printf(TEXT("%s DOWN"), *GetName()));

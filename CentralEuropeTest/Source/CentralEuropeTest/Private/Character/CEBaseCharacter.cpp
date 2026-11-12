@@ -1,6 +1,7 @@
 #include "Character/CEBaseCharacter.h"
 
 #include "CentralEuropeTest.h"
+#include "Audio/CEAudioSubsystem.h"
 #include "Camera/CameraComponent.h"
 #include "Character/CEBlockMannequinComponent.h"
 #include "Combat/CECombatComponent.h"
@@ -252,6 +253,10 @@ void ACEBaseCharacter::Input_JumpStarted(const FInputActionValue& Value)
 		UnCrouch();
 		return;
 	}
+	if (CanJump())
+	{
+		UCEAudioSubsystem::PlayAt(this, TEXT("Jump"), GetActorLocation(), ECESoundRange::Near);
+	}
 	Jump();
 }
 
@@ -343,6 +348,7 @@ void ACEBaseCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	UpdateLocomotionState();
+	UpdateMovementSounds(DeltaSeconds);
 
 	float TargetFOV = DefaultFOV;
 	if (CombatComponent->IsAiming())
@@ -376,6 +382,75 @@ void ACEBaseCharacter::DrawDebugHud() const
 	// Minimal crosshair.
 	GEngine->AddOnScreenDebugMessage(static_cast<uint64>(GetUniqueID()) + 1, 0.f, FColor::Green,
 		CombatComponent->IsAiming() ? TEXT("aiming") : TEXT(""));
+}
+
+// ---------------------------------------------------------------- movement sounds
+
+void ACEBaseCharacter::UpdateMovementSounds(float DeltaSeconds)
+{
+	const UCharacterMovementComponent* Movement = GetCharacterMovement();
+	const float Speed = GetVelocity().Size2D();
+	const bool bSwimming = Movement->IsSwimming();
+	if (bInVehicle || Speed < 40.f || !(bSwimming || Movement->IsMovingOnGround()))
+	{
+		StepDistance = 0.f;
+		return;
+	}
+
+	// One sound per stride: the stride lengthens when sprinting and shortens when crouched.
+	StepDistance += Speed * DeltaSeconds;
+	float Stride = 150.f;
+	float Volume = 0.7f;
+	if (bSwimming)
+	{
+		Stride = 220.f;
+	}
+	else if (LocomotionState == ECELocomotionState::Sprinting)
+	{
+		Stride = 195.f;
+		Volume = 1.f;
+	}
+	else if (LocomotionState == ECELocomotionState::Crouching)
+	{
+		Stride = 105.f;
+		Volume = 0.3f;
+	}
+	if (StepDistance < Stride)
+	{
+		return;
+	}
+	StepDistance = 0.f;
+
+	const FVector Feet = GetActorLocation() - FVector(0.f, 0.f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+	if (bSwimming)
+	{
+		UCEAudioSubsystem::PlayAt(this, TEXT("Swim_Stroke"), GetActorLocation(), ECESoundRange::Near, 0.9f, FMath::FRandRange(0.9f, 1.1f));
+	}
+	else
+	{
+		UCEAudioSubsystem::PlayVariantAt(this, TEXT("Footstep"), 4, Feet, ECESoundRange::Near, Volume, FMath::FRandRange(0.93f, 1.07f));
+	}
+}
+
+void ACEBaseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	// Louder the harder the landing; a step off a kerb is nearly silent.
+	const float Impact = FMath::Clamp(FMath::Abs(GetVelocity().Z) / 900.f, 0.f, 1.f);
+	if (Impact > 0.15f)
+	{
+		UCEAudioSubsystem::PlayAt(this, TEXT("Land"), Hit.ImpactPoint, ECESoundRange::Near, 0.4f + 0.6f * Impact);
+	}
+}
+
+void ACEBaseCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	const UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (Movement && Movement->MovementMode == MOVE_Swimming && PrevMovementMode != MOVE_Swimming && HasActorBegunPlay())
+	{
+		UCEAudioSubsystem::PlayAt(this, TEXT("Splash"), GetActorLocation(), ECESoundRange::Mid);
+	}
 }
 
 // ---------------------------------------------------------------- vehicles

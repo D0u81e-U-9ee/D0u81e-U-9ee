@@ -5,6 +5,7 @@ Outputs (into ../SourceArt/Terrain by default):
   heightmap_2017.png    16-bit grayscale, 2017x2017, ready for Landscape > Import from File
   terrain_layout.json   landscape transform, river / road / lake control points in UE cm
   terrain_preview.png   8-bit preview shaded with the auto-material rules (for review only)
+  road_mask.png         road carriageway mask sampled by the landscape material (white = road)
 
 Conventions (match docs/UE5_OpenWorld_Combat_TDD.md):
   +X = North, +Y = East, map centre at the world origin, lake surface at Z = 0.
@@ -143,6 +144,8 @@ def bake_road(z, path, road_z, half_w=4.5, falloff=11.5):
         best_z[r0:r1, c0:c1][closer] = road_z[i]
     w = 1.0 - smoothstep(half_w, half_w + falloff, best_d)
     z += (best_z - z) * w
+    # carriageway mask for the landscape material: 1 on the road, fading out over the verge
+    return 1.0 - smoothstep(half_w - 0.5, half_w + 2.5, best_d)
 
 
 def limit_grade(zr, g, closed, pin_start):
@@ -310,7 +313,7 @@ def build(seed):
         all_z.append(zr)
         road_paths[name] = (path, R["closed"])
     # one shared bake so the nearest road sample wins at junctions
-    bake_road(z, np.vstack(all_xy), np.concatenate(all_z))
+    road_mask = bake_road(z, np.vstack(all_xy), np.concatenate(all_z))
 
     np.clip(z, Z_MIN, Z_MAX, out=z)
 
@@ -320,7 +323,7 @@ def build(seed):
         layout["roads"][name] = {"closed": closed, "points": [
             {"x": round(path[i, 0] * 100), "y": round(path[i, 1] * 100), "z": round(zs[i] * 100)} for i in idx]}
 
-    return z, layout, road_paths
+    return z, layout, road_paths, road_mask
 
 
 def analyse(z, road_paths):
@@ -393,12 +396,15 @@ def main():
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
-    z, layout, road_paths = build(args.seed)
+    z, layout, road_paths, road_mask = build(args.seed)
     report, slope = analyse(z, road_paths)
 
     h16 = np.clip(np.round(H16_SEA + z * H16_PER_M), 0, 65535).astype(np.uint16)
     write_png(os.path.join(args.out, "heightmap_2017.png"), h16, bit16=True)
     write_png(os.path.join(args.out, "terrain_preview.png"), material_preview(z, slope, layout), bit16=False)
+    # same orientation as the heightmap: column -> world X, row -> world Y
+    mask8 = np.clip(np.round(road_mask * 255), 0, 255).astype(np.uint8)
+    write_png(os.path.join(args.out, "road_mask.png"), np.repeat(mask8[..., None], 3, axis=2), bit16=False)
 
     layout.update({
         "units": "cm", "axes": "+X north, +Y east",

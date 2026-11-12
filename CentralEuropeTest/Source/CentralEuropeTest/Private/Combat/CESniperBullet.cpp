@@ -1,6 +1,7 @@
 #include "Combat/CESniperBullet.h"
 
 #include "CentralEuropeTest.h"
+#include "Audio/CEAudioSubsystem.h"
 #include "Combat/CEWeaponTypes.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
@@ -74,6 +75,8 @@ void ACESniperBullet::HandleProjectileStop(const FHitResult& ImpactResult)
 				InstigatorPawn ? InstigatorPawn->GetController() : nullptr, this, UDamageType::StaticClass());
 		}
 	}
+
+	UCEAudioSubsystem::PlayAt(this, TEXT("Bullet_Impact"), ImpactResult.ImpactPoint, ECESoundRange::Mid);
 
 #if ENABLE_DRAW_DEBUG
 	DrawDebugSphere(GetWorld(), ImpactResult.ImpactPoint, 12.f, 8, FColor::Orange, false, 3.f);

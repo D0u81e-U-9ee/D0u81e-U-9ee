@@ -4,6 +4,7 @@
 #include "GameFramework/Pawn.h"
 #include "CETestCart.generated.h"
 
+class UAudioComponent;
 class UBoxComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -29,6 +30,11 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void UnPossessed() override;
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cart") TObjectPtr<UBoxComponent> Body;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cart") TObjectPtr<UStaticMeshComponent> BodyMesh;
@@ -66,4 +72,7 @@ private:
 	float Steer = 0.f;
 	bool bBraking = false;
 	float GradePercent = 0.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> EngineLoop;
 };

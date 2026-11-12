@@ -1,6 +1,8 @@
 #include "Test/CETestCart.h"
 
+#include "Audio/CEAudioSubsystem.h"
 #include "Camera/CameraComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/Engine.h"
@@ -56,6 +58,15 @@ ACETestCart::ACETestCart()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+}
+
+void ACETestCart::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UCEAudioSubsystem* Audio = UCEAudioSubsystem::Get(this))
+	{
+		EngineLoop = Audio->StartLoopAttached(TEXT("Cart_Engine"), Body, 9000.f, 0.f);
+	}
 }
 
 void ACETestCart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -189,6 +200,16 @@ void ACETestCart::Tick(float DeltaSeconds)
 	}
 
 	SetActorLocationAndRotation(Location, Rotation, false, nullptr, ETeleportType::TeleportPhysics);
+
+	// Engine note: silent when parked and empty, idle when occupied, rising with speed and load.
+	if (EngineLoop)
+	{
+		const bool bOccupied = GetController() != nullptr;
+		const float SpeedRatio = FMath::Clamp(FMath::Abs(Speed) / TopSpeed, 0.f, 1.f);
+		const float Load = FMath::Abs(Throttle);
+		EngineLoop->SetPitchMultiplier((bHeavyTruck ? 0.55f : 0.75f) + SpeedRatio * (bHeavyTruck ? 0.7f : 1.1f) + Load * 0.12f);
+		EngineLoop->SetVolumeMultiplier(bOccupied || SpeedRatio > 0.02f ? 0.35f + 0.45f * FMath::Max(SpeedRatio, Load) : 0.001f);
+	}
 
 	if (GEngine && IsLocallyControlled())
 	{

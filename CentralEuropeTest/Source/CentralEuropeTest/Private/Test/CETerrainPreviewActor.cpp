@@ -1,6 +1,7 @@
 #include "Test/CETerrainPreviewActor.h"
 
 #include "CentralEuropeTest.h"
+#include "Editor/CEEditorLibrary.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -9,21 +10,15 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PhysicsVolume.h"
-#include "IImageWrapper.h"
-#include "IImageWrapperModule.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
-#include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
-#include "Modules/ModuleManager.h"
 #include "ProceduralMeshComponent.h"
 
 namespace
 {
-	// Must match Tools/generate_terrain.py and the Landscape import settings.
-	const float CmPerSample = 100.f;          // 1 m per heightmap pixel
-	const float CmPerHeightUnit = 1.953125f;  // Z scale 250
-	const float SeaLevelUnits = 4096.f;       // 16-bit value at Z = 0
+	using namespace CETerrain;   // shared scale constants
 	const int32 ChunkCells = 63;
 
 	enum ELayer { Forest, Meadow, Scree, Cliff, Snow, LakeBed, NumLayers };
@@ -70,39 +65,6 @@ ACETerrainPreviewActor::ACETerrainPreviewActor()
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 }
 
-bool ACETerrainPreviewActor::LoadHeightmap()
-{
-	const FString FullPath = FPaths::Combine(FPaths::ProjectDir(), HeightmapPath);
-	TArray<uint8> FileData;
-	if (!FFileHelper::LoadFileToArray(FileData, *FullPath))
-	{
-		UE_LOG(LogCETest, Warning, TEXT("Terrain preview: cannot read %s (run Tools/generate_terrain.py)"), *FullPath);
-		return false;
-	}
-
-	IImageWrapperModule& ImageModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
-	const TSharedPtr<IImageWrapper> Wrapper = ImageModule.CreateImageWrapper(EImageFormat::PNG);
-	TArray64<uint8> Raw;
-	if (!Wrapper.IsValid() || !Wrapper->SetCompressed(FileData.GetData(), FileData.Num()) || !Wrapper->GetRaw(ERGBFormat::Gray, 16, Raw))
-	{
-		UE_LOG(LogCETest, Warning, TEXT("Terrain preview: %s is not a 16-bit grayscale PNG"), *FullPath);
-		return false;
-	}
-
-	const int32 Width = static_cast<int32>(Wrapper->GetWidth());
-	const int32 Height = static_cast<int32>(Wrapper->GetHeight());
-	if (Width != Height || Width < 2 || Raw.Num() < static_cast<int64>(Width) * Height * 2)
-	{
-		UE_LOG(LogCETest, Warning, TEXT("Terrain preview: unexpected heightmap size %d x %d"), Width, Height);
-		return false;
-	}
-
-	Resolution = Width;
-	Heights.SetNumUninitialized(Resolution * Resolution);
-	FMemory::Memcpy(Heights.GetData(), Raw.GetData(), static_cast<SIZE_T>(Resolution) * Resolution * sizeof(uint16));
-	return true;
-}
-
 float ACETerrainPreviewActor::HeightAtSample(int32 Col, int32 Row) const
 {
 	Col = FMath::Clamp(Col, 0, Resolution - 1);
@@ -135,7 +97,7 @@ bool ACETerrainPreviewActor::Build()
 	{
 		return true;
 	}
-	if (!LoadHeightmap())
+	if (!CETerrain::LoadHeightmap16(FPaths::Combine(FPaths::ProjectDir(), HeightmapPath), Heights, Resolution))
 	{
 		return false;
 	}
@@ -161,7 +123,7 @@ bool ACETerrainPreviewActor::Build()
 	const double StartTime = FPlatformTime::Seconds();
 	const int32 SamplesPerSide = (Resolution - 1) / SampleStep + 1;
 	const int32 ChunksPerSide = FMath::DivideAndRoundUp(SamplesPerSide - 1, ChunkCells);
-	for (int32 ChunkY = 0; ChunkY < ChunksPerSide; ++ChunkY)
+	for (int32 ChunkY = 0; bBuildTerrainMesh && ChunkY < ChunksPerSide; ++ChunkY)
 	{
 		for (int32 ChunkX = 0; ChunkX < ChunksPerSide; ++ChunkX)
 		{
@@ -180,7 +142,14 @@ bool ACETerrainPreviewActor::Build()
 		const float SizeCm = (Resolution - 1) * CmPerSample;
 		WaterPlane->SetWorldLocation(FVector(0.f, 0.f, WaterZ));
 		WaterPlane->SetWorldScale3D(FVector(SizeCm / 100.f, SizeCm / 100.f, 1.f));
-		if (BaseMaterial)
+		// Authored by Tools/ue/build_world.py; falls back to a flat blue when it has not been run.
+		UMaterialInterface* AuthoredWater = FPackageName::DoesPackageExist(TEXT("/Game/CE/Materials/M_CE_Water"))
+			? LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/CE/Materials/M_CE_Water.M_CE_Water")) : nullptr;
+		if (AuthoredWater)
+		{
+			WaterPlane->SetMaterial(0, AuthoredWater);
+		}
+		else if (BaseMaterial)
 		{
 			UMaterialInstanceDynamic* WaterMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, this);
 			WaterMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.02f, 0.12f, 0.2f));

@@ -1,6 +1,7 @@
 #include "Combat/CECombatComponent.h"
 
 #include "CentralEuropeTest.h"
+#include "Audio/CEAudioSubsystem.h"
 #include "Character/CEBlockMannequinComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
@@ -249,6 +250,7 @@ void UCECombatComponent::EquipSlot(int32 Slot)
 		return;
 	}
 	ApplySlot(Slot);
+	UCEAudioSubsystem::PlayAt(this, TEXT("Equip"), GetOwner()->GetActorLocation(), ECESoundRange::Near, 0.8f);
 	ShowStatus(FString::Printf(TEXT("Equipped [%d] %s"), CurrentSlot, *CurrentData.WeaponName.ToString()));
 }
 
@@ -469,6 +471,7 @@ void UCECombatComponent::FireOneShot()
 	{
 		if (SlotAmmo[CurrentSlot] <= 0)
 		{
+			UCEAudioSubsystem::PlayAt(this, TEXT("Gun_Empty"), GetOwner()->GetActorLocation(), ECESoundRange::Near);
 			Reload();
 			return;
 		}
@@ -483,6 +486,20 @@ void UCECombatComponent::FireOneShot()
 	{
 		FireHitscan();
 	}
+	// Gunshot: one sound per weapon class, slight pitch scatter so automatic fire does not sound looped.
+	FName ShotSound = TEXT("Gun_Pistol");
+	if (CurrentData.WeaponType == ECEWeaponType::Rifle)
+	{
+		ShotSound = TEXT("Gun_Rifle");
+	}
+	else if (CurrentData.WeaponType == ECEWeaponType::Sniper)
+	{
+		ShotSound = TEXT("Gun_Sniper");
+	}
+	const ACEWeaponBase* ShotWeapon = GetCurrentWeaponActor();
+	UCEAudioSubsystem::PlayAt(this, ShotSound, ShotWeapon ? ShotWeapon->GetMuzzleTransform().GetLocation() : GetOwner()->GetActorLocation(),
+		ECESoundRange::Far, 1.f, FMath::FRandRange(0.96f, 1.04f));
+
 	ApplyRecoil();
 	OnAttack.Broadcast(CurrentData);
 }
@@ -498,6 +515,7 @@ void UCECombatComponent::Reload()
 		return;
 	}
 	bReloading = true;
+	UCEAudioSubsystem::PlayAt(this, TEXT("Reload_Start"), GetOwner()->GetActorLocation(), ECESoundRange::Near);
 	BurstShotsRemaining = 0;
 	FTimerManager& Timers = GetWorld()->GetTimerManager();
 	Timers.ClearTimer(FireTimer);
@@ -509,6 +527,10 @@ void UCECombatComponent::FinishReload()
 {
 	bReloading = false;
 	SlotAmmo[CurrentSlot] = CurrentData.MagSize;
+	if (GetOwner())
+	{
+		UCEAudioSubsystem::PlayAt(this, TEXT("Reload_End"), GetOwner()->GetActorLocation(), ECESoundRange::Near);
+	}
 	if (bWantsFire && CurrentData.FireMode == ECEFireMode::Auto)
 	{
 		StartFire();
@@ -558,6 +580,14 @@ void UCECombatComponent::DealDamage(const FHitResult& Hit, const FVector& Direct
 	UGameplayStatics::ApplyPointDamage(HitActor, Damage, Direction, Hit,
 		Pawn ? Pawn->GetController() : nullptr, GetOwner(), UDamageType::StaticClass());
 	OnHit.Broadcast(HitActor, Damage, Hit);
+
+	// Impact at the target, plus a quiet confirmation tick for the local shooter.
+	const bool bMelee = CurrentData.FireMode == ECEFireMode::Melee;
+	UCEAudioSubsystem::PlayAt(this, bMelee ? FName(TEXT("Melee_Hit")) : FName(TEXT("Bullet_Impact")), Hit.ImpactPoint, ECESoundRange::Mid);
+	if (Pawn && Pawn->IsLocallyControlled())
+	{
+		UCEAudioSubsystem::Play2D(this, TEXT("Hit_Confirm"), 0.6f);
+	}
 }
 
 // ---------------------------------------------------------------- hitscan
@@ -590,6 +620,10 @@ void UCECombatComponent::FireHitscan()
 	{
 		const bool bHeadshot = CEIsHeadshot(Hit);
 		DealDamage(Hit, Direction, CurrentData.BaseDamage * (bHeadshot ? CurrentData.HeadshotMultiplier : 1.f));
+		if (!Hit.GetActor() || !Hit.GetActor()->CanBeDamaged())
+		{
+			UCEAudioSubsystem::PlayAt(this, TEXT("Bullet_Impact"), Hit.ImpactPoint, ECESoundRange::Mid, 0.8f);
+		}
 	}
 
 #if ENABLE_DRAW_DEBUG
@@ -732,6 +766,7 @@ void UCECombatComponent::StartMeleeAttack()
 		EndMeleeTrace();
 	}
 	bFallbackSwing = false;
+	UCEAudioSubsystem::PlayAt(this, TEXT("Melee_Swing"), GetOwner()->GetActorLocation(), ECESoundRange::Near, 1.f, FMath::FRandRange(0.92f, 1.08f));
 
 	UAnimMontage* Montage = CurrentData.AttackMontage.IsNull() ? nullptr : CurrentData.AttackMontage.LoadSynchronous();
 	const bool bCanPlay = Montage && OwnerCharacter && OwnerCharacter->GetMesh() && OwnerCharacter->GetMesh()->GetAnimInstance();

@@ -46,6 +46,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview Terrain")
 	float PreviewStartYaw = 30.f;
 
+	/** Wind, birds, lake and river ambience (ACEAmbienceActor). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	bool bSpawnAmbience = true;
+
 	/** Spawn the stand-in cart (and a truck-profile one) next to the player. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Test Range")
 	bool bSpawnTestCarts = true;

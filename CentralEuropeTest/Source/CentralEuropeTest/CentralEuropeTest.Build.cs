@@ -9,7 +9,7 @@ public class CentralEuropeTest : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "PhysicsCore",
-			"ProceduralMeshComponent", "ImageWrapper"
+			"ProceduralMeshComponent", "ImageWrapper", "Json", "Landscape"
 		});
 	}
 }

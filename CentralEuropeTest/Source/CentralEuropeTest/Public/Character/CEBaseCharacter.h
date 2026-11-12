@@ -28,6 +28,8 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
 	virtual void PostInitializeComponents() override;
+	virtual void Landed(const FHitResult& Hit) override;
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode = 0) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -113,7 +115,10 @@ private:
 	void DrawDebugHud() const;
 
 	ECELocomotionState LocomotionState = ECELocomotionState::Walking;
+	void UpdateMovementSounds(float DeltaSeconds);
+
 	FVector2D MoveInput = FVector2D::ZeroVector;
+	float StepDistance = 0.f;
 	bool bWantsSprint = false;
 	bool bInVehicle = false;
 };

@@ -1,6 +1,7 @@
 #include "Test/CETestGameMode.h"
 
 #include "CentralEuropeTest.h"
+#include "Audio/CEAmbienceActor.h"
 #include "Character/CEBaseCharacter.h"
 #include "Character/CEPlayerController.h"
 #include "Engine/World.h"
@@ -27,35 +28,45 @@ void ACETestGameMode::InitGame(const FString& MapName, const FString& Options, F
 	{
 		return;
 	}
-	// A real Landscape (or a hand-placed preview) wins.
+	bool bHasLandscape = false;
+	bool bHasWaterBody = false;
 	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
 	{
 		if (It->IsA<ACETerrainPreviewActor>())
 		{
+			// Hand-placed preview / lake actor wins.
 			PreviewTerrain = Cast<ACETerrainPreviewActor>(*It);
 			PreviewTerrain->Build();
 			return;
 		}
-		if (It->GetClass()->GetName().StartsWith(TEXT("Landscape")))
-		{
-			return;
-		}
+		const FString ClassName = It->GetClass()->GetName();
+		bHasLandscape |= ClassName.StartsWith(TEXT("Landscape"));
+		bHasWaterBody |= ClassName.StartsWith(TEXT("WaterBody"));
+	}
+	if (bHasLandscape && bHasWaterBody)
+	{
+		return;   // the level is fully authored
 	}
 
+	// No Landscape: full preview terrain. Landscape without Water plugin bodies: lake stand-in only.
 	ACETerrainPreviewActor* Terrain = GetWorld()->SpawnActor<ACETerrainPreviewActor>();
-	if (Terrain && Terrain->Build())
+	if (Terrain)
 	{
-		PreviewTerrain = Terrain;
-	}
-	else if (Terrain)
-	{
-		Terrain->Destroy();   // heightmap missing: fall back to whatever the level provides
+		Terrain->bBuildTerrainMesh = !bHasLandscape;
+		if (Terrain->Build())
+		{
+			PreviewTerrain = Terrain;
+		}
+		else
+		{
+			Terrain->Destroy();   // heightmap missing: fall back to whatever the level provides
+		}
 	}
 }
 
 APawn* ACETestGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
 {
-	if (PreviewTerrain && PreviewTerrain->IsBuilt())
+	if (PreviewTerrain && PreviewTerrain->HasTerrainMesh())
 	{
 		const float GroundZ = PreviewTerrain->GetHeightAt(PreviewStartXY.X, PreviewStartXY.Y);
 		const FTransform OnTerrain(FRotator(0.f, PreviewStartYaw, 0.f), FVector(PreviewStartXY.X, PreviewStartXY.Y, GroundZ + 130.f));
@@ -67,7 +78,7 @@ APawn* ACETestGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 void ACETestGameMode::FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation)
 {
 	// On the preview terrain the level's PlayerStart is ignored, so its facing must be too.
-	const bool bOnPreview = PreviewTerrain && PreviewTerrain->IsBuilt();
+	const bool bOnPreview = PreviewTerrain && PreviewTerrain->HasTerrainMesh();
 	Super::FinishRestartPlayer(NewPlayer, bOnPreview ? FRotator(0.f, PreviewStartYaw, 0.f) : StartRotation);
 }
 
@@ -101,6 +112,10 @@ bool ACETestGameMode::HasLineOfSight(const FVector& Eye, const FVector& GroundPo
 void ACETestGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	if (bSpawnAmbience && GetWorld())
+	{
+		GetWorld()->SpawnActor<ACEAmbienceActor>();
+	}
 	if (bSpawnTestRange)
 	{
 		// Short delay so the pawn has landed and nearby cells have streamed in.

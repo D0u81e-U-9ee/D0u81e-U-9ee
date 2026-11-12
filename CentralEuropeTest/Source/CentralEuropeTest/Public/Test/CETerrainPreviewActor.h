@@ -37,6 +37,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	float WaterZ = 0.f;
 
+	/**
+	 * False = "lake stand-in" mode for a level that has the real Landscape but no Water plugin
+	 * bodies yet: no terrain mesh is built, only the lake surface and the swimming support
+	 * (the heightmap is still loaded, it is the same data the Landscape was imported from).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	bool bBuildTerrainMesh = true;
+
+	UFUNCTION(BlueprintPure, Category = "Terrain")
+	bool HasTerrainMesh() const { return bBuilt && bBuildTerrainMesh; }
+
 	/** Loads the heightmap and creates all chunks (with collision) synchronously. */
 	UFUNCTION(BlueprintCallable, Category = "Terrain")
 	bool Build();
@@ -51,7 +62,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
-	bool LoadHeightmap();
 	float HeightAtSample(int32 Col, int32 Row) const;
 	void BuildChunk(int32 ChunkX, int32 ChunkY, int32 SamplesPerSide);
 	void UpdateSwimming();
