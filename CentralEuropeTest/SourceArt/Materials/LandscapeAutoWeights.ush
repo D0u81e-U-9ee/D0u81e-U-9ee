@@ -1,0 +1,30 @@
+// M_LandscapeAuto - layer weights for a Material "Custom" node.
+//
+// Inputs (wire in the material graph):
+//   VertexNormalWS : float3  (VertexNormalWS node - NOT PixelNormalWS, so detail normals do not jitter the slope)
+//   WorldPos       : float3  (Absolute World Position, cm)
+//   Noise          : float   (any 0..1 breakup noise; use 0.5 for none)
+// Output: float4(wForest, wMeadow, wScree, wCliff)   - sums to 1
+// Additional output pin "Snow" (float): overlay alpha, Lerp(BlendedLayers, SnowLayer, Snow)
+//
+// Thresholds from the design document; identical maths runs in Tools/generate_terrain.py
+// (material_preview) which produced SourceArt/Terrain/terrain_preview.png.
+
+float SlopeDeg = degrees(acos(saturate(VertexNormalWS.z)));
+float Z = WorldPos.z;
+
+float wCliff  = smoothstep(42.0, 48.0, SlopeDeg);                                   // > 45 deg, triplanar
+float wScree  = saturate(max(smoothstep(27.0, 33.0, SlopeDeg),                       // 30 - 45 deg
+                             smoothstep(65000.0, 70000.0, Z))) * (1.0 - wCliff);     // or flat ground above 700 m
+float Rest    = 1.0 - wCliff - wScree;
+float wForest = Rest * (1.0 - smoothstep(12.0, 18.0, SlopeDeg))                      // 0 - 15 deg
+                     * (1.0 - smoothstep(45000.0, 50000.0, Z));                      // and below 500 m
+float wMeadow = Rest - wForest;                                                      // 15 - 30 deg, below 700 m
+
+// Snow: linear 850 m -> 1000 m, thinned on faces steeper than ~50 deg, broken up by noise.
+Snow = saturate((Z - 85000.0) / 15000.0)
+     * saturate((VertexNormalWS.z - 0.5) / 0.3)
+     * lerp(0.8, 1.2, Noise);
+Snow = saturate(Snow);
+
+return float4(wForest, wMeadow, wScree, wCliff);
