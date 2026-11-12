@@ -74,7 +74,12 @@ void UCEInputSubsystem::BuildDefaults()
 	IA_Aim        = MakeAction(TEXT("IA_Aim"), EInputActionValueType::Boolean);
 	IA_Fire       = MakeAction(TEXT("IA_Fire"), EInputActionValueType::Boolean);
 	IA_Reload     = MakeAction(TEXT("IA_Reload"), EInputActionValueType::Boolean);
-	IA_WeaponSlot = MakeAction(TEXT("IA_WeaponSlot"), EInputActionValueType::Axis1D);
+	IA_WeaponSlot1 = MakeAction(TEXT("IA_WeaponSlot1"), EInputActionValueType::Boolean);
+	IA_WeaponSlot2 = MakeAction(TEXT("IA_WeaponSlot2"), EInputActionValueType::Boolean);
+	IA_WeaponSlot3 = MakeAction(TEXT("IA_WeaponSlot3"), EInputActionValueType::Boolean);
+	IA_WeaponSlot4 = MakeAction(TEXT("IA_WeaponSlot4"), EInputActionValueType::Boolean);
+	IA_WeaponNext  = MakeAction(TEXT("IA_WeaponNext"), EInputActionValueType::Boolean);
+	IA_WeaponPrev  = MakeAction(TEXT("IA_WeaponPrev"), EInputActionValueType::Boolean);
 
 	// ---- IMC_Default ----
 	IMC_Default = NewObject<UInputMappingContext>(this, TEXT("IMC_Default"));
@@ -107,15 +112,24 @@ void UCEInputSubsystem::BuildDefaults()
 	Map(IMC_Combat, IA_Fire, EKeys::Gamepad_RightTrigger);
 	Map(IMC_Combat, IA_Reload, EKeys::R);
 	Map(IMC_Combat, IA_Reload, EKeys::Gamepad_FaceButton_Left);
-	// One Axis1D action for all four slots: the Scalar modifier turns the key into its slot index.
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::One, EMod::None, 1.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Two, EMod::None, 2.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Three, EMod::None, 3.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Four, EMod::None, 4.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Gamepad_DPad_Left, EMod::None, 1.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Gamepad_DPad_Up, EMod::None, 2.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Gamepad_DPad_Right, EMod::None, 3.f);
-	Map(IMC_Combat, IA_WeaponSlot, EKeys::Gamepad_DPad_Down, EMod::None, 4.f);
+	// One plain button action per slot (number row and numpad), plus mouse wheel / shoulder cycling.
+	Map(IMC_Combat, IA_WeaponSlot1, EKeys::One);
+	Map(IMC_Combat, IA_WeaponSlot2, EKeys::Two);
+	Map(IMC_Combat, IA_WeaponSlot3, EKeys::Three);
+	Map(IMC_Combat, IA_WeaponSlot4, EKeys::Four);
+	Map(IMC_Combat, IA_WeaponSlot1, EKeys::NumPadOne);
+	Map(IMC_Combat, IA_WeaponSlot2, EKeys::NumPadTwo);
+	Map(IMC_Combat, IA_WeaponSlot3, EKeys::NumPadThree);
+	Map(IMC_Combat, IA_WeaponSlot4, EKeys::NumPadFour);
+	Map(IMC_Combat, IA_WeaponSlot1, EKeys::Gamepad_DPad_Left);
+	Map(IMC_Combat, IA_WeaponSlot2, EKeys::Gamepad_DPad_Up);
+	Map(IMC_Combat, IA_WeaponSlot3, EKeys::Gamepad_DPad_Right);
+	Map(IMC_Combat, IA_WeaponSlot4, EKeys::Gamepad_DPad_Down);
+	Map(IMC_Combat, IA_WeaponNext, EKeys::MouseScrollUp);
+	Map(IMC_Combat, IA_WeaponNext, EKeys::Q);
+	Map(IMC_Combat, IA_WeaponNext, EKeys::Gamepad_RightShoulder);
+	Map(IMC_Combat, IA_WeaponPrev, EKeys::MouseScrollDown);
+	Map(IMC_Combat, IA_WeaponPrev, EKeys::Gamepad_LeftShoulder);
 
 	// ---- IMC_Vehicle ----
 	IMC_Vehicle = NewObject<UInputMappingContext>(this, TEXT("IMC_Vehicle"));

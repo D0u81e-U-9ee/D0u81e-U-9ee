@@ -13,7 +13,7 @@ class UInputMappingContext;
  * assets later by assigning the same pointers from a data asset.
  *
  *   IMC_Default (priority 0): IA_Move, IA_Look, IA_Jump, IA_Sprint, IA_Crouch, IA_Interact
- *   IMC_Combat  (priority 1): IA_Aim, IA_Fire, IA_Reload, IA_WeaponSlot (Axis1D, value = slot 1-4)
+ *   IMC_Combat  (priority 1): IA_Aim, IA_Fire, IA_Reload, IA_WeaponSlot1..4, IA_WeaponNext / IA_WeaponPrev
  *   IMC_Vehicle (priority 2): IA_Interact (exit) + throttle / steer / brake / look for the stand-in ACETestCart.
  */
 UCLASS()
@@ -39,7 +39,12 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_Aim;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_Fire;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_Reload;
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot1;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot2;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot3;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot4;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponNext;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponPrev;
 
 	// Stand-in vehicle (ACETestCart). These do not consume their keys, so a Chaos vehicle's own
 	// mapping context keeps working alongside IMC_Vehicle.

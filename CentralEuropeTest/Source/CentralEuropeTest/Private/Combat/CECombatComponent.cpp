@@ -9,6 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/DataTable.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Controller.h"
@@ -128,6 +129,10 @@ void UCECombatComponent::SpawnSlotWeapons()
 			SlotWeapons[Slot] = Weapon;
 			AttachWeaponToHolster(Weapon, *Data);
 		}
+		else
+		{
+			UE_LOG(LogCETest, Error, TEXT("Combat: failed to spawn the weapon actor for slot %d (%s)"), Slot, *Data->WeaponName.ToString());
+		}
 	}
 }
 
@@ -210,10 +215,26 @@ void UCECombatComponent::AttachWeaponToHolster(ACEWeaponBase* Weapon, const FCEW
 	}
 }
 
+void UCECombatComponent::ShowStatus(const FString& Message, bool bProblem) const
+{
+	UE_LOG(LogCETest, Log, TEXT("Combat: %s"), *Message);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, bProblem ? 6.f : 2.f, bProblem ? FColor::Red : FColor::Yellow, Message);
+	}
+}
+
 void UCECombatComponent::EquipSlot(int32 Slot)
 {
-	if (bAttacksBlocked || !SlotData.IsValidIndex(0))
+	// Every early-out reports why, so a "key does nothing" report can be traced on screen.
+	if (bAttacksBlocked)
 	{
+		ShowStatus(TEXT("Weapon switch ignored: weapons are blocked (in a vehicle)"), true);
+		return;
+	}
+	if (!SlotData.IsValidIndex(NumSlots - 1) || !SlotWeapons.IsValidIndex(NumSlots - 1))
+	{
+		ShowStatus(TEXT("Weapon switch failed: weapon slots were never set up (combat component BeginPlay did not run)"), true);
 		return;
 	}
 	Slot = FMath::Clamp(Slot, 0, NumSlots - 1);
@@ -221,11 +242,45 @@ void UCECombatComponent::EquipSlot(int32 Slot)
 	{
 		Slot = 0;   // selecting the active slot again holsters -> fists
 	}
-	if (Slot > 0 && !SlotWeapons[Slot] && SlotData[Slot].WeaponType != ECEWeaponType::Unarmed)
+	if (Slot > 0 && !SlotWeapons[Slot])
 	{
-		return;     // slot has no valid row
+		ShowStatus(FString::Printf(TEXT("Slot %d is empty: weapon row '%s' was not found or its actor failed to spawn"),
+			Slot, *GetRowForSlot(Slot).ToString()), true);
+		return;
 	}
 	ApplySlot(Slot);
+	ShowStatus(FString::Printf(TEXT("Equipped [%d] %s"), CurrentSlot, *CurrentData.WeaponName.ToString()));
+}
+
+void UCECombatComponent::CycleSlot(int32 Direction)
+{
+	if (!SlotWeapons.IsValidIndex(NumSlots - 1))
+	{
+		EquipSlot(1);   // reports the setup problem
+		return;
+	}
+	const int32 Step = Direction >= 0 ? 1 : -1;
+	int32 Slot = CurrentSlot;
+	for (int32 Attempt = 0; Attempt < NumSlots; ++Attempt)
+	{
+		Slot = (Slot + Step + NumSlots) % NumSlots;
+		if (Slot == 0 || SlotWeapons[Slot])
+		{
+			break;
+		}
+	}
+	if (Slot == CurrentSlot)
+	{
+		return;
+	}
+	if (Slot == 0)
+	{
+		EquipSlot(CurrentSlot);   // same slot again = holster to fists
+	}
+	else
+	{
+		EquipSlot(Slot);
+	}
 }
 
 void UCECombatComponent::ApplySlot(int32 Slot)
@@ -543,10 +598,10 @@ void UCECombatComponent::FireHitscan()
 		const ACEWeaponBase* Weapon = GetCurrentWeaponActor();
 		const FVector TracerStart = Weapon ? Weapon->GetMuzzleTransform().GetLocation() : Start;
 		const FVector TracerEnd = bHit ? Hit.ImpactPoint : End;
-		DrawDebugLine(GetWorld(), TracerStart, TracerEnd, FColor::Yellow, false, 0.08f, 0, 1.f);
+		DrawDebugLine(GetWorld(), TracerStart, TracerEnd, FColor::Yellow, false, 0.35f, 0, 3.f);
 		if (bHit)
 		{
-			DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 8.f, FColor::Red, false, 1.5f);
+			DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 14.f, FColor::Red, false, 2.f);
 		}
 	}
 #endif

@@ -43,7 +43,7 @@ authored assets** (inputs, weapons and targets are built in code, with placehold
 ## Controls
 
 WASD move · mouse look · Space jump · Shift sprint · C / Ctrl crouch · E interact (enter / exit vehicle)
-· LMB fire · RMB aim · R reload · 1 pistol · 2 rifle · 3 sniper · 4 knife (press the active slot again for fists).
+· LMB fire · RMB aim · R reload · 1 pistol · 2 rifle · 3 sniper · 4 knife (press the active slot again for fists) · mouse wheel or Q cycles weapons.
 In a cart: W / S throttle and reverse · A / D steer · Space brake · E exit.
 Gamepad is mapped too. `combat.Debug 0` hides tracers and melee sweeps.
 
@@ -116,7 +116,7 @@ Regenerate with `python3 Tools/generate_terrain.py` (`--seed N` for a different 
 
 - **C++ instead of Blueprint assets.** Binary `.uasset` files cannot be authored outside the editor, so each
   specified Blueprint is a C++ class you can subclass.
-- **Input assets are built in code** rather than as `IA_` / `IMC_` assets. `IA_WeaponSlot1_4` is one Axis1D action whose value is the slot number.
+- **Input assets are built in code** rather than as `IA_` / `IMC_` assets. `IA_WeaponSlot1_4` is four button actions (`IA_WeaponSlot1` … `4`) plus next / previous on the mouse wheel.
 - **Road beds are baked into the heightmap** (the document said to cut them with landscape splines) so the grades are verifiable now. Splines can still be laid on the markers for road meshes.
 - **Foothills were reshaped**: a 19° meadow band, then a 50° rock flank, then the cliff band. The ridge is too narrow for the 25–35° forest slope the document described.
 - **Single-player authority only.** Damage is applied on the owning machine; there are no server RPCs yet.

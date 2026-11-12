@@ -59,6 +59,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void EquipSlot(int32 Slot);
 
+	/** Steps through fists -> slot 1 -> ... -> slot 4 (Direction = +1 or -1), skipping empty slots. */
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void CycleSlot(int32 Direction);
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void StartFire();
 
@@ -144,6 +148,7 @@ private:
 	void FinishReload();
 	void ApplyRecoil();
 	void CancelActions();
+	void ShowStatus(const FString& Message, bool bProblem = false) const;
 
 	/** Camera view for players, eyes for AI. */
 	void GetAimView(FVector& OutLocation, FRotator& OutRotation) const;

@@ -98,7 +98,12 @@ private:
 	void Input_FireStarted(const FInputActionValue& Value);
 	void Input_FireCompleted(const FInputActionValue& Value);
 	void Input_Reload(const FInputActionValue& Value);
-	void Input_WeaponSlot(const FInputActionValue& Value);
+	void Input_WeaponSlot1(const FInputActionValue& Value);
+	void Input_WeaponSlot2(const FInputActionValue& Value);
+	void Input_WeaponSlot3(const FInputActionValue& Value);
+	void Input_WeaponSlot4(const FInputActionValue& Value);
+	void Input_WeaponNext(const FInputActionValue& Value);
+	void Input_WeaponPrev(const FInputActionValue& Value);
 	void Input_JumpStarted(const FInputActionValue& Value);
 	void Input_JumpCompleted(const FInputActionValue& Value);
 

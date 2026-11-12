@@ -197,7 +197,12 @@ void ACEBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	EIC->BindAction(Input->IA_Fire, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_FireStarted);
 	EIC->BindAction(Input->IA_Fire, ETriggerEvent::Completed, this, &ACEBaseCharacter::Input_FireCompleted);
 	EIC->BindAction(Input->IA_Reload, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_Reload);
-	EIC->BindAction(Input->IA_WeaponSlot, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponSlot);
+	EIC->BindAction(Input->IA_WeaponSlot1, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponSlot1);
+	EIC->BindAction(Input->IA_WeaponSlot2, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponSlot2);
+	EIC->BindAction(Input->IA_WeaponSlot3, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponSlot3);
+	EIC->BindAction(Input->IA_WeaponSlot4, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponSlot4);
+	EIC->BindAction(Input->IA_WeaponNext, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponNext);
+	EIC->BindAction(Input->IA_WeaponPrev, ETriggerEvent::Started, this, &ACEBaseCharacter::Input_WeaponPrev);
 }
 
 void ACEBaseCharacter::Input_Move(const FInputActionValue& Value)
@@ -287,14 +292,12 @@ void ACEBaseCharacter::Input_FireStarted(const FInputActionValue& Value)  { Comb
 void ACEBaseCharacter::Input_FireCompleted(const FInputActionValue& Value){ CombatComponent->StopFire(); }
 void ACEBaseCharacter::Input_Reload(const FInputActionValue& Value)       { CombatComponent->Reload(); }
 
-void ACEBaseCharacter::Input_WeaponSlot(const FInputActionValue& Value)
-{
-	const int32 Slot = FMath::RoundToInt(Value.Get<float>());
-	if (Slot >= 1 && Slot <= 4)
-	{
-		CombatComponent->EquipSlot(Slot);
-	}
-}
+void ACEBaseCharacter::Input_WeaponSlot1(const FInputActionValue& Value) { CombatComponent->EquipSlot(1); }
+void ACEBaseCharacter::Input_WeaponSlot2(const FInputActionValue& Value) { CombatComponent->EquipSlot(2); }
+void ACEBaseCharacter::Input_WeaponSlot3(const FInputActionValue& Value) { CombatComponent->EquipSlot(3); }
+void ACEBaseCharacter::Input_WeaponSlot4(const FInputActionValue& Value) { CombatComponent->EquipSlot(4); }
+void ACEBaseCharacter::Input_WeaponNext(const FInputActionValue& Value)  { CombatComponent->CycleSlot(+1); }
+void ACEBaseCharacter::Input_WeaponPrev(const FInputActionValue& Value)  { CombatComponent->CycleSlot(-1); }
 
 // ---------------------------------------------------------------- locomotion
 
@@ -366,7 +369,7 @@ void ACEBaseCharacter::DrawDebugHud() const
 	const FString Ammo = Weapon.MagSize > 0
 		? FString::Printf(TEXT("%d / %d%s"), CombatComponent->GetAmmoInMag(), Weapon.MagSize, CombatComponent->IsReloading() ? TEXT("  RELOADING") : TEXT(""))
 		: FString(TEXT("-"));
-	const FString Text = FString::Printf(TEXT("[%d] %s   ammo %s   |  %s  %.0f cm/s   HP %.0f\n1-4 weapons  LMB fire  RMB aim  R reload  Shift sprint  C crouch  E interact"),
+	const FString Text = FString::Printf(TEXT("[%d] %s   ammo %s   |  %s  %.0f cm/s   HP %.0f\n1-4 / wheel / Q weapons  LMB fire  RMB aim  R reload  Shift sprint  C crouch  E interact"),
 		CombatComponent->GetCurrentSlot(), *Weapon.WeaponName.ToString(), *Ammo, *State, GetVelocity().Size(), HealthComponent->GetHealth());
 	GEngine->AddOnScreenDebugMessage(static_cast<uint64>(GetUniqueID()), 0.f, FColor::White, Text);
 
