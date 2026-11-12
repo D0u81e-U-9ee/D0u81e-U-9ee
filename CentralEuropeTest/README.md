@@ -17,28 +17,28 @@ authored assets** (inputs, weapons and targets are built in code, with placehold
 | `Tools/generate_terrain.py` | Terrain generator (numpy only) — heightmap, layout JSON, preview |
 | `SourceArt/Terrain/` | Generated `heightmap_2017.png` (16-bit), `terrain_layout.json`, `terrain_preview.png` |
 | `SourceArt/Materials/LandscapeAutoWeights.ush` | Slope / height / snow weights for a material Custom node |
-| `Content/Data/DT_Weapons.csv` | Weapon rows, importable as a DataTable of `WeaponData` |
+| `Content/Data/DT_Weapons.csv` | Weapon rows, importable as a DataTable of `CEWeaponData` |
 | `Tools/ue/setup_level.py` | Editor script: lighting stack, PlayerStart, river / road markers |
 
 ### C++ classes (parents for the Blueprints named in the design)
 
 | Class | Blueprint to derive | Role |
 |---|---|---|
-| `ABaseCharacter` | `BP_BaseCharacter` | Walk / sprint / crouch / swim / in-vehicle, third-person camera, aim FOV |
-| `UCombatComponent` | `BP_CombatComponent` | Slots, fire timing, hitscan, projectile spawn, melee sweeps, recoil, anim-layer linking |
-| `FWeaponData` | `ST_WeaponData` | DataTable row; the nine specified fields plus optional extensions |
-| `ASniperBullet` | `BP_SniperBullet` | 85 000 cm/s, gravity scale 1.0, swept, sub-stepped |
-| `UAnimNotifyState_MeleeTrace` | `ANS_MeleeTrace` | Opens / ticks / closes the melee damage window |
-| `UCombatAnimInstance` | `ABP_Base` | Publishes speed, direction, state, aim offsets, weapon type |
-| `UPrototypeInputSubsystem` | — | Builds `IA_*` and `IMC_Default / IMC_Combat / IMC_Vehicle` in code |
-| `APrototypePlayerController` | — | `IA_Interact`, vehicle enter / exit, context swapping |
-| `IInteractable`, `UVehicleSeatComponent` | `BPI_Interactable` | Add the seat component to any vehicle pawn to make it drivable |
-| `ATestDummy`, `UHealthComponent` | `BP_TestDummy` | Target that logs every hit with damage and range |
-| `AActorSpawner` | `BP_VehicleSpawner` | Ground-snapped spawner for the `DL_Spawners` layer |
-| `ATestGameMode` | `BP_TestGameMode` | Default pawn / controller, preview terrain, dummy range at 3 / 25 / 100 / 300 / 500 m, test carts |
-| `UBlockMannequinComponent` | — | Asset-free animated stand-in body with hit volumes and weapon attach points |
-| `ATerrainPreviewActor` | — | Runtime mesh of the heightmap with collision, lake plane and swimming |
-| `ATestCart` | — | Kinematic stand-in vehicle (fast and truck profiles) for enter / exit and road-grade tests |
+| `ACEBaseCharacter` | `BP_BaseCharacter` | Walk / sprint / crouch / swim / in-vehicle, third-person camera, aim FOV |
+| `UCECombatComponent` | `BP_CombatComponent` | Slots, fire timing, hitscan, projectile spawn, melee sweeps, recoil, anim-layer linking |
+| `FCEWeaponData` | `ST_WeaponData` | DataTable row; the nine specified fields plus optional extensions |
+| `ACESniperBullet` | `BP_SniperBullet` | 85 000 cm/s, gravity scale 1.0, swept, sub-stepped |
+| `UCEAnimNotifyState_MeleeTrace` | `ANS_MeleeTrace` | Opens / ticks / closes the melee damage window |
+| `UCECombatAnimInstance` | `ABP_Base` | Publishes speed, direction, state, aim offsets, weapon type |
+| `UCEInputSubsystem` | — | Builds `IA_*` and `IMC_Default / IMC_Combat / IMC_Vehicle` in code |
+| `ACEPlayerController` | — | `IA_Interact`, vehicle enter / exit, context swapping |
+| `ICEInteractable`, `UCEVehicleSeatComponent` | `BPI_Interactable` | Add the seat component to any vehicle pawn to make it drivable |
+| `ACETestDummy`, `UCEHealthComponent` | `BP_TestDummy` | Target that logs every hit with damage and range |
+| `ACEActorSpawner` | `BP_VehicleSpawner` | Ground-snapped spawner for the `DL_Spawners` layer |
+| `ACETestGameMode` | `BP_TestGameMode` | Default pawn / controller, preview terrain, dummy range at 3 / 25 / 100 / 300 / 500 m, test carts |
+| `UCEBlockMannequinComponent` | — | Asset-free animated stand-in body with hit volumes and weapon attach points |
+| `ACETerrainPreviewActor` | — | Runtime mesh of the heightmap with collision, lake plane and swimming |
+| `ACETestCart` | — | Kinematic stand-in vehicle (fast and truck profiles) for enter / exit and road-grade tests |
 
 ## Controls
 
@@ -73,7 +73,7 @@ as the level contains a real Landscape. Disable it with `bAutoPreviewTerrain` on
   headshots work. The test targets use the same figure in orange.
 - **Automatic upgrade to the UE5 Mannequin:** Epic's Manny / Quinn assets ship with the engine, not with this
   repository. In the Content Browser choose *Add → Add Feature or Content Pack → Third Person*. On the next
-  Play, `ABaseCharacter` finds `SKM_Manny_Simple` and its Anim Blueprint and uses them instead; weapons
+  Play, `ACEBaseCharacter` finds `SKM_Manny_Simple` and its Anim Blueprint and uses them instead; weapons
   attach to the `hand_r` / `thigh_r` / `spine_03` / `spine_02` bones until the named sockets are authored
   (tune the grip with `HandAttachOffset` on the combat component). The asset paths are editable on the
   character if your engine version lays the pack out differently.
@@ -96,11 +96,11 @@ as the level contains a real Landscape. Disable it with `bAutoPreviewTerrain` on
 4. **Landscape material.** New material → Custom node with the contents of `LandscapeAutoWeights.ush`
    (inputs `VertexNormalWS`, `WorldPos`, `Noise`; additional output `Snow`), blend four layer texture sets by
    the returned weights, triplanar on the cliff layer, then lerp to snow.
-5. **Combat animation (optional).** Derive `BP_BaseCharacter` from `ABaseCharacter`, give it an Anim Blueprint
-   parented to `CombatAnimInstance`, and add the sockets `hand_r_socket`, `holster_thigh_r`,
+5. **Combat animation (optional).** Derive `BP_BaseCharacter` from `ACEBaseCharacter`, give it an Anim Blueprint
+   parented to `CECombatAnimInstance`, and add the sockets `hand_r_socket`, `holster_thigh_r`,
    `spine_rifle_socket`, `spine_sniper_socket` to the mannequin skeleton.
-6. **Vehicles (optional).** Add the Vehicle template content, add a `VehicleSeatComponent` to its pawn Blueprint,
-   and place an `ActorSpawner` with that Blueprint as `SpawnClass`.
+6. **Vehicles (optional).** Add the Vehicle template content, add a `CEVehicleSeatComponent` to its pawn Blueprint,
+   and place an `CEActorSpawner` with that Blueprint as `SpawnClass`.
 
 ## Terrain facts (from the generator's own report)
 
