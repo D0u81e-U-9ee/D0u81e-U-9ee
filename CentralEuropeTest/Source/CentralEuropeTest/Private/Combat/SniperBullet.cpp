@@ -1,6 +1,7 @@
 #include "Combat/SniperBullet.h"
 
 #include "CentralEuropeTest.h"
+#include "Combat/WeaponTypes.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/DamageEvents.h"
@@ -66,7 +67,7 @@ void ASniperBullet::HandleProjectileStop(const FHitResult& ImpactResult)
 	{
 		if (AActor* HitActor = ImpactResult.GetActor())
 		{
-			const bool bHeadshot = ImpactResult.BoneName == FName(TEXT("head"));
+			const bool bHeadshot = IsHeadshot(ImpactResult);
 			const float FinalDamage = Damage * (bHeadshot ? HeadshotMultiplier : 1.f);
 			APawn* InstigatorPawn = GetInstigator();
 			UGameplayStatics::ApplyPointDamage(HitActor, FinalDamage, ShotDirection, ImpactResult,

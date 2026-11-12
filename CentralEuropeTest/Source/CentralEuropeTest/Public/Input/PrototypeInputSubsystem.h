@@ -14,7 +14,7 @@ class UInputMappingContext;
  *
  *   IMC_Default (priority 0): IA_Move, IA_Look, IA_Jump, IA_Sprint, IA_Crouch, IA_Interact
  *   IMC_Combat  (priority 1): IA_Aim, IA_Fire, IA_Reload, IA_WeaponSlot (Axis1D, value = slot 1-4)
- *   IMC_Vehicle (priority 2): IA_Interact (exit). Driving inputs belong to the vehicle's own context.
+ *   IMC_Vehicle (priority 2): IA_Interact (exit) + throttle / steer / brake / look for the stand-in ATestCart.
  */
 UCLASS()
 class CENTRALEUROPETEST_API UPrototypeInputSubsystem : public ULocalPlayerSubsystem
@@ -40,6 +40,13 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_Fire;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_Reload;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_WeaponSlot;
+
+	// Stand-in vehicle (ATestCart). These do not consume their keys, so a Chaos vehicle's own
+	// mapping context keeps working alongside IMC_Vehicle.
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_VehicleThrottle;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_VehicleSteer;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_VehicleBrake;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputAction> IA_VehicleLook;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputMappingContext> IMC_Default;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Input") TObjectPtr<UInputMappingContext> IMC_Combat;

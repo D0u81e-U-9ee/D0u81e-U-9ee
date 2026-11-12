@@ -2,30 +2,31 @@
 
 #include "CentralEuropeTest.h"
 #include "Combat/HealthComponent.h"
-#include "Components/StaticMeshComponent.h"
+#include "Character/BlockMannequinComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Engine/Engine.h"
-#include "Engine/StaticMesh.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
-#include "UObject/ConstructorHelpers.h"
 
 ATestDummy::ATestDummy()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Engine cylinder is 100 cm tall / 100 cm wide with its pivot at the centre: 50 cm wide, 180 cm tall body.
-	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-	SetRootComponent(Body);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-	if (Cylinder.Succeeded())
-	{
-		Body->SetStaticMesh(Cylinder.Object);
-	}
-	Body->SetRelativeScale3D(FVector(0.5f, 0.5f, 1.8f));
-	Body->SetMobility(EComponentMobility::Movable);
+	Body = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Body"));
+	Body->InitCapsuleSize(30.f, 90.f);
 	Body->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Body->SetCollisionObjectType(ECC_WorldDynamic);
 	Body->SetCollisionResponseToAllChannels(ECR_Block);
+	Body->SetCollisionResponseToChannel(ECC_Weapon, ECR_Ignore);
+	Body->SetCollisionResponseToChannel(ECC_Melee, ECR_Ignore);
+	Body->SetCollisionResponseToChannel(ECC_Projectile, ECR_Ignore);
+	SetRootComponent(Body);
+
+	Mannequin = CreateDefaultSubobject<UBlockMannequinComponent>(TEXT("Mannequin"));
+	Mannequin->SetupAttachment(Body);
+	Mannequin->BodyColor = FLinearColor(0.85f, 0.4f, 0.1f);
+	Mannequin->bAnimate = false;
 
 	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 	Health->MaxHealth = 100.f;
@@ -48,8 +49,9 @@ void ATestDummy::HandlePointDamage(AActor* DamagedActor, float Damage, AControll
 	const float RangeM = Shooter ? FVector::Dist(Shooter->GetActorLocation(), HitLocation) / 100.f : 0.f;
 	// Health is updated by the generic damage delegate, which fires after this one.
 	const float HealthAfter = FMath::Max(Health->GetHealth() - Damage, 0.f);
-	const FString Text = FString::Printf(TEXT("%s  hit #%d  dmg %.0f  range %.1f m  height %.0f cm  by %s  hp %.0f"),
-		*GetName(), HitCount, Damage, RangeM, HitLocation.Z - GetActorLocation().Z, *GetNameSafe(DamageCauser), HealthAfter);
+	const bool bHead = HitComponent && HitComponent->ComponentHasTag(TEXT("head"));
+	const FString Text = FString::Printf(TEXT("%s  hit #%d  %s  dmg %.0f  range %.1f m  by %s  hp %.0f"),
+		*GetName(), HitCount, bHead ? TEXT("HEAD") : TEXT("body"), Damage, RangeM, *GetNameSafe(DamageCauser), HealthAfter);
 
 	UE_LOG(LogCETest, Log, TEXT("%s"), *Text);
 	if (GEngine)

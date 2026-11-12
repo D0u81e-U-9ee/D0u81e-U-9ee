@@ -50,6 +50,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|Melee")
 	float FallbackSwingDelay = 0.08f;
 
+	/** Grip offset relative to the hand socket / bone. Tune per skeleton when no socket is authored. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	FTransform HandAttachOffset;
+
 	// ---- input facing API ----
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -124,6 +128,7 @@ private:
 	FName GetRowForSlot(int32 Slot) const;
 
 	void SpawnSlotWeapons();
+	bool ResolveAttachPoint(FName Socket, USceneComponent*& OutParent, FName& OutSocket) const;
 	void AttachWeaponToHand(AWeaponBase* Weapon) const;
 	void AttachWeaponToHolster(AWeaponBase* Weapon, const FWeaponData& Data) const;
 	void ApplySlot(int32 Slot);

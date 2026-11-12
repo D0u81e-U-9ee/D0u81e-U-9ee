@@ -139,4 +139,10 @@ namespace CombatSockets
 	static const FName Muzzle(TEXT("muzzle"));
 	static const FName BladeBase(TEXT("blade_base"));
 	static const FName BladeTip(TEXT("blade_tip"));
+
+	/** Bone to attach to when the socket has not been authored on the skeleton yet. */
+	CENTRALEUROPETEST_API FName FallbackBone(FName Socket);
 }
+
+/** Skeletal mesh "head" bone, or any hit component tagged "head" (block mannequin). */
+CENTRALEUROPETEST_API bool IsHeadshot(const struct FHitResult& Hit);

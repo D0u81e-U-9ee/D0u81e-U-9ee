@@ -35,20 +35,53 @@ authored assets** (inputs, weapons and targets are built in code, with placehold
 | `IInteractable`, `UVehicleSeatComponent` | `BPI_Interactable` | Add the seat component to any vehicle pawn to make it drivable |
 | `ATestDummy`, `UHealthComponent` | `BP_TestDummy` | Target that logs every hit with damage and range |
 | `AActorSpawner` | `BP_VehicleSpawner` | Ground-snapped spawner for the `DL_Spawners` layer |
-| `ATestGameMode` | `BP_TestGameMode` | Default pawn / controller, spawns a dummy range at 3 / 25 / 100 / 300 / 500 m |
+| `ATestGameMode` | `BP_TestGameMode` | Default pawn / controller, preview terrain, dummy range at 3 / 25 / 100 / 300 / 500 m, test carts |
+| `UBlockMannequinComponent` | — | Asset-free animated stand-in body with hit volumes and weapon attach points |
+| `ATerrainPreviewActor` | — | Runtime mesh of the heightmap with collision, lake plane and swimming |
+| `ATestCart` | — | Kinematic stand-in vehicle (fast and truck profiles) for enter / exit and road-grade tests |
 
 ## Controls
 
 WASD move · mouse look · Space jump · Shift sprint · C / Ctrl crouch · E interact (enter / exit vehicle)
 · LMB fire · RMB aim · R reload · 1 pistol · 2 rifle · 3 sniper · 4 knife (press the active slot again for fists).
+In a cart: W / S throttle and reverse · A / D steer · Space brake · E exit.
 Gamepad is mapped too. `combat.Debug 0` hides tracers and melee sweeps.
 
-## Getting it running
+## First playtest (no editor work needed)
 
 1. **Build.** Right-click the `.uproject` → *Generate Visual Studio project files*, build *Development Editor*.
    If your engine is not 5.5, change `EngineAssociation` first.
-2. **Quick combat test (no terrain needed).** Open any level with a floor and a PlayerStart and press Play.
-   The game mode is already the project default; five dummies appear in front of you.
+2. **Open the project and press Play.** The startup map is the engine's basic template level. Because it has
+   no Landscape, the game mode builds the generated heightmap as a **runtime preview terrain** (4 m grid,
+   coloured by the auto-material rules, lake at Z = 0) and starts you on the valley loop road.
+3. **What is there to test**
+   - Five mannequin targets at 3 / 25 / 100 / 300 / 500 m up the foothills. Each hit is logged on screen with
+     damage, range and HEAD / body. The start point was chosen so all five are in plain sight; if a target
+     would be hidden, the range slides it sideways.
+   - Two stand-in carts to your right (E to enter / exit): a fast one and a truck-profile one that shows
+     speed and road grade. They are kinematic test vehicles, **not Chaos vehicles**.
+   - The lake: follow the loop road and the harbour branch (about 600 m south-west) and walk in to swim.
+
+The preview terrain is a playtest stand-in only: no World Partition streaming, no Landscape material, no
+Water plugin, and it works in the editor / PIE only (it reads `SourceArt/`). It switches itself off as soon
+as the level contains a real Landscape. Disable it with `bAutoPreviewTerrain` on the game mode.
+
+## The mannequin
+
+- **Always present:** a code-built block mannequin (180 cm, jointed, built from engine basic shapes). It walks,
+  sprints, crouches, swims, raises the weapon to aim and punches; its head is a separate hit volume, so
+  headshots work. The test targets use the same figure in orange.
+- **Automatic upgrade to the UE5 Mannequin:** Epic's Manny / Quinn assets ship with the engine, not with this
+  repository. In the Content Browser choose *Add → Add Feature or Content Pack → Third Person*. On the next
+  Play, `ABaseCharacter` finds `SKM_Manny_Simple` and its Anim Blueprint and uses them instead; weapons
+  attach to the `hand_r` / `thigh_r` / `spine_03` / `spine_02` bones until the named sockets are authored
+  (tune the grip with `HandAttachOffset` on the combat component). The asset paths are editable on the
+  character if your engine version lays the pack out differently.
+
+## Building the real level
+
+1. Steps 1–2 above.
+2. (Optional) Quick combat test in any level with a floor and a PlayerStart: set `bAutoPreviewTerrain` off.
 3. **Terrain level.**
    1. *File → New Level → Open World* and save as `Content/Maps/L_CentralEuropeTest`. Delete the template landscape.
    2. *Landscape mode → Manage → New → Import from File*: `SourceArt/Terrain/heightmap_2017.png`.
@@ -63,10 +96,9 @@ Gamepad is mapped too. `combat.Debug 0` hides tracers and melee sweeps.
 4. **Landscape material.** New material → Custom node with the contents of `LandscapeAutoWeights.ush`
    (inputs `VertexNormalWS`, `WorldPos`, `Noise`; additional output `Snow`), blend four layer texture sets by
    the returned weights, triplanar on the cliff layer, then lerp to snow.
-5. **Mannequin (optional).** Add the Third Person content, derive `BP_BaseCharacter` from `ABaseCharacter`,
-   assign the Manny mesh and an Anim Blueprint parented to `CombatAnimInstance`, and add the sockets
-   `hand_r_socket`, `holster_thigh_r`, `spine_rifle_socket`, `spine_sniper_socket` to the skeleton.
-   Until then the character is a capsule with placeholder box weapons.
+5. **Combat animation (optional).** Derive `BP_BaseCharacter` from `ABaseCharacter`, give it an Anim Blueprint
+   parented to `CombatAnimInstance`, and add the sockets `hand_r_socket`, `holster_thigh_r`,
+   `spine_rifle_socket`, `spine_sniper_socket` to the mannequin skeleton.
 6. **Vehicles (optional).** Add the Vehicle template content, add a `VehicleSeatComponent` to its pawn Blueprint,
    and place an `ActorSpawner` with that Blueprint as `SpawnClass`.
 
@@ -88,6 +120,7 @@ Regenerate with `python3 Tools/generate_terrain.py` (`--seed N` for a different 
 - **Road beds are baked into the heightmap** (the document said to cut them with landscape splines) so the grades are verifiable now. Splines can still be laid on the markers for road meshes.
 - **Foothills were reshaped**: a 19° meadow band, then a 50° rock flank, then the cliff band. The ridge is too narrow for the 25–35° forest slope the document described.
 - **Single-player authority only.** Damage is applied on the owning machine; there are no server RPCs yet.
+- **Playtest stand-ins** that the document does not describe: the runtime preview terrain, the block mannequin and the kinematic test carts. They exist so a first playtest needs no authored assets; each is replaced by the real thing (Landscape, UE5 Mannequin, Chaos vehicles) without code changes.
 
 ## Not done yet
 

@@ -5,6 +5,7 @@
 #include "Combat/WeaponTypes.h"
 #include "BaseCharacter.generated.h"
 
+class UBlockMannequinComponent;
 class UCameraComponent;
 class UCombatComponent;
 class UHealthComponent;
@@ -26,6 +27,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
+	virtual void PostInitializeComponents() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -38,6 +40,21 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<UHealthComponent> HealthComponent;
+
+	/** Code-built stand-in body, used whenever no skeletal mesh is assigned or found. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mannequin")
+	TObjectPtr<UBlockMannequinComponent> BlockMannequin;
+
+	/**
+	 * When the mesh component has no asset, the first of these that exists in the project is used.
+	 * Defaults point at the UE5 Mannequin from the Third Person content pack (Manny / Quinn).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mannequin")
+	TArray<FSoftObjectPath> MannequinMeshCandidates;
+
+	/** Anim Blueprint classes tried in order for an auto-assigned mannequin mesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mannequin")
+	TArray<FSoftObjectPath> MannequinAnimClassCandidates;
 
 	// ---- tuning (cm/s) ----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion") float WalkSpeed = 250.f;
@@ -87,6 +104,7 @@ private:
 
 	void UpdateLocomotionState();
 	void ConfigureHitCollision();
+	void TryAutoAssignMannequin();
 	void DrawDebugHud() const;
 
 	ELocomotionState LocomotionState = ELocomotionState::Walking;

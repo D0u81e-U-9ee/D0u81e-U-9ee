@@ -122,6 +122,26 @@ void UPrototypeInputSubsystem::BuildDefaults()
 	Map(IMC_Vehicle, IA_Interact, EKeys::E);
 	Map(IMC_Vehicle, IA_Interact, EKeys::F);
 	Map(IMC_Vehicle, IA_Interact, EKeys::Gamepad_FaceButton_Top);
+
+	IA_VehicleThrottle = MakeAction(TEXT("IA_VehicleThrottle"), EInputActionValueType::Axis1D);
+	IA_VehicleSteer    = MakeAction(TEXT("IA_VehicleSteer"), EInputActionValueType::Axis1D);
+	IA_VehicleBrake    = MakeAction(TEXT("IA_VehicleBrake"), EInputActionValueType::Boolean);
+	IA_VehicleLook     = MakeAction(TEXT("IA_VehicleLook"), EInputActionValueType::Axis2D);
+	for (UInputAction* Action : { IA_VehicleThrottle.Get(), IA_VehicleSteer.Get(), IA_VehicleBrake.Get(), IA_VehicleLook.Get() })
+	{
+		Action->bConsumeInput = false;
+	}
+	Map(IMC_Vehicle, IA_VehicleThrottle, EKeys::W);
+	Map(IMC_Vehicle, IA_VehicleThrottle, EKeys::S, EMod::Negate);
+	Map(IMC_Vehicle, IA_VehicleThrottle, EKeys::Gamepad_RightTriggerAxis);
+	Map(IMC_Vehicle, IA_VehicleThrottle, EKeys::Gamepad_LeftTriggerAxis, EMod::Negate);
+	Map(IMC_Vehicle, IA_VehicleSteer, EKeys::D);
+	Map(IMC_Vehicle, IA_VehicleSteer, EKeys::A, EMod::Negate);
+	MapStick(IMC_Vehicle, IA_VehicleSteer, EKeys::Gamepad_LeftX, 1.f);
+	Map(IMC_Vehicle, IA_VehicleBrake, EKeys::SpaceBar);
+	Map(IMC_Vehicle, IA_VehicleBrake, EKeys::Gamepad_FaceButton_Bottom);
+	Map(IMC_Vehicle, IA_VehicleLook, EKeys::Mouse2D);
+	MapStick(IMC_Vehicle, IA_VehicleLook, EKeys::Gamepad_Right2D, 150.f, true);
 }
 
 void UPrototypeInputSubsystem::ApplyOnFootContexts()

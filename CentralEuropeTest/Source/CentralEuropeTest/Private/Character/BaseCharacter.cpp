@@ -2,6 +2,7 @@
 
 #include "CentralEuropeTest.h"
 #include "Camera/CameraComponent.h"
+#include "Character/BlockMannequinComponent.h"
 #include "Combat/CombatComponent.h"
 #include "Combat/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -14,6 +15,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Input/PrototypeInputSubsystem.h"
 #include "InputActionValue.h"
+#include "Engine/SkeletalMesh.h"
+#include "Misc/PackageName.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -55,11 +58,73 @@ ABaseCharacter::ABaseCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	BlockMannequin = CreateDefaultSubobject<UBlockMannequinComponent>(TEXT("BlockMannequin"));
+	BlockMannequin->SetupAttachment(GetRootComponent());
+
+	// UE5 Mannequin locations in the Third Person content pack (5.5 layout first, then the newer one).
+	MannequinMeshCandidates = {
+		FSoftObjectPath(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple")),
+		FSoftObjectPath(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny")),
+		FSoftObjectPath(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple")),
+	};
+	MannequinAnimClassCandidates = {
+		FSoftObjectPath(TEXT("/Game/Characters/Mannequins/Animations/ABP_Manny.ABP_Manny_C")),
+		FSoftObjectPath(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.ABP_Unarmed_C")),
+	};
+}
+
+void ABaseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Runs before any component BeginPlay, so the combat component sees the final body.
+	if (GetWorld() && GetWorld()->IsGameWorld())
+	{
+		TryAutoAssignMannequin();
+		const bool bHasSkeletalBody = GetMesh() && GetMesh()->GetSkeletalMeshAsset();
+		BlockMannequin->SetMannequinEnabled(!bHasSkeletalBody);
+	}
+}
+
+void ABaseCharacter::TryAutoAssignMannequin()
+{
+	USkeletalMeshComponent* SkelMesh = GetMesh();
+	if (!SkelMesh || SkelMesh->GetSkeletalMeshAsset())
+	{
+		return;   // a Blueprint child already assigned one
+	}
+
+	auto LoadIfPresent = [](const FSoftObjectPath& Path) -> UObject*
+	{
+		// Check the package first so a missing content pack does not spam load errors.
+		return (Path.IsValid() && FPackageName::DoesPackageExist(Path.GetLongPackageName())) ? Path.TryLoad() : nullptr;
+	};
+
+	for (const FSoftObjectPath& MeshPath : MannequinMeshCandidates)
+	{
+		if (USkeletalMesh* Found = Cast<USkeletalMesh>(LoadIfPresent(MeshPath)))
+		{
+			SkelMesh->SetSkeletalMeshAsset(Found);
+			for (const FSoftObjectPath& AnimPath : MannequinAnimClassCandidates)
+			{
+				if (UClass* AnimClass = Cast<UClass>(LoadIfPresent(AnimPath)))
+				{
+					SkelMesh->SetAnimInstanceClass(AnimClass);
+					break;
+				}
+			}
+			UE_LOG(LogCETest, Log, TEXT("%s: using mannequin %s"), *GetName(), *MeshPath.ToString());
+			return;
+		}
+	}
+	UE_LOG(LogCETest, Log, TEXT("%s: no skeletal mannequin in the project, using the block mannequin"), *GetName());
 }
 
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	BlockMannequin->EnsureBuilt();
 	ConfigureHitCollision();
 	UpdateLocomotionState();
 }
@@ -70,7 +135,8 @@ void ABaseCharacter::ConfigureHitCollision()
 	// and the capsule ignores combat channels to avoid double hits. Without one, the capsule is the target.
 	USkeletalMeshComponent* SkelMesh = GetMesh();
 	const bool bMeshIsTarget = SkelMesh && SkelMesh->GetSkeletalMeshAsset() && SkelMesh->GetPhysicsAsset();
-	const ECollisionResponse CapsuleResponse = bMeshIsTarget ? ECR_Ignore : ECR_Block;
+	const bool bBlocksAreTarget = BlockMannequin && BlockMannequin->IsBuilt();   // its parts carry their own hit volumes
+	const ECollisionResponse CapsuleResponse = (bMeshIsTarget || bBlocksAreTarget) ? ECR_Ignore : ECR_Block;
 
 	UCapsuleComponent* Capsule = GetCapsuleComponent();
 	Capsule->SetCollisionResponseToChannel(ECC_Weapon, CapsuleResponse);

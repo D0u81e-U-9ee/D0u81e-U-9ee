@@ -1,5 +1,8 @@
 #include "Combat/WeaponTypes.h"
 
+#include "Components/PrimitiveComponent.h"
+#include "Engine/HitResult.h"
+
 namespace
 {
 	FWeaponData MakeRow(FName Name, EWeaponType Type, EFireMode Mode, float Damage, float FireRate, bool bProjectile, float Recoil)
@@ -60,4 +63,24 @@ const FWeaponData* FBuiltinWeapons::Find(FName RowName)
 {
 	static const TMap<FName, FWeaponData> Rows = BuildRows();
 	return Rows.Find(RowName);
+}
+
+FName CombatSockets::FallbackBone(FName Socket)
+{
+	if (Socket == Hand)         { return FName(TEXT("hand_r")); }
+	if (Socket == HolsterThigh) { return FName(TEXT("thigh_r")); }
+	if (Socket == SpineRifle)   { return FName(TEXT("spine_03")); }
+	if (Socket == SpineSniper)  { return FName(TEXT("spine_02")); }
+	return NAME_None;
+}
+
+bool IsHeadshot(const FHitResult& Hit)
+{
+	static const FName Head(TEXT("head"));
+	if (Hit.BoneName == Head)
+	{
+		return true;
+	}
+	const UPrimitiveComponent* Component = Hit.GetComponent();
+	return Component && Component->ComponentHasTag(Head);
 }

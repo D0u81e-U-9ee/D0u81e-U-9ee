@@ -5,9 +5,10 @@
 #include "TestDummy.generated.h"
 
 class UHealthComponent;
-class UStaticMeshComponent;
+class UBlockMannequinComponent;
+class UCapsuleComponent;
 
-/** BP_TestDummy parent: human-sized target that logs every hit (damage, range, bone) on screen and in the log. */
+/** BP_TestDummy parent (actor origin = body centre, feet 90 cm below): human-sized target that logs every hit (damage, range, bone) on screen and in the log. */
 UCLASS(Blueprintable)
 class CENTRALEUROPETEST_API ATestDummy : public AActor
 {
@@ -16,8 +17,12 @@ class CENTRALEUROPETEST_API ATestDummy : public AActor
 public:
 	ATestDummy();
 
+	/** Blocks movement only; combat hits land on the mannequin parts (head = headshot). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dummy")
-	TObjectPtr<UStaticMeshComponent> Body;
+	TObjectPtr<UCapsuleComponent> Body;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dummy")
+	TObjectPtr<UBlockMannequinComponent> Mannequin;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dummy")
 	TObjectPtr<UHealthComponent> Health;

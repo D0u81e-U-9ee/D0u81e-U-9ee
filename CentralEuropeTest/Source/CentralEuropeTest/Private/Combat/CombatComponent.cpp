@@ -1,6 +1,7 @@
 #include "Combat/CombatComponent.h"
 
 #include "CentralEuropeTest.h"
+#include "Character/BlockMannequinComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Combat/SniperBullet.h"
@@ -22,8 +23,6 @@ static TAutoConsoleVariable<int32> CVarCombatDebug(
 
 namespace
 {
-	const FName HeadBone(TEXT("head"));
-
 	bool DebugEnabled()
 	{
 		return CVarCombatDebug.GetValueOnGameThread() != 0;
@@ -132,20 +131,58 @@ void UCombatComponent::SpawnSlotWeapons()
 	}
 }
 
+bool UCombatComponent::ResolveAttachPoint(FName Socket, USceneComponent*& OutParent, FName& OutSocket) const
+{
+	OutParent = nullptr;
+	OutSocket = NAME_None;
+	if (Socket.IsNone() || !GetOwner())
+	{
+		return false;
+	}
+
+	// 1) Real skeletal mannequin: authored socket, else the matching bone.
+	USkeletalMeshComponent* Mesh = OwnerCharacter ? OwnerCharacter->GetMesh() : nullptr;
+	if (Mesh && Mesh->GetSkeletalMeshAsset())
+	{
+		const FName Bone = CombatSockets::FallbackBone(Socket);
+		const FName Use = Mesh->DoesSocketExist(Socket) ? Socket : (!Bone.IsNone() && Mesh->DoesSocketExist(Bone) ? Bone : NAME_None);
+		if (!Use.IsNone())
+		{
+			OutParent = Mesh;
+			OutSocket = Use;
+			return true;
+		}
+	}
+
+	// 2) Block mannequin attach points.
+	if (UBlockMannequinComponent* Mannequin = GetOwner()->FindComponentByClass<UBlockMannequinComponent>())
+	{
+		Mannequin->EnsureBuilt();
+		if (USceneComponent* Point = Mannequin->FindAttachPoint(Socket))
+		{
+			OutParent = Point;
+			return true;
+		}
+	}
+	return false;
+}
+
 void UCombatComponent::AttachWeaponToHand(AWeaponBase* Weapon) const
 {
 	if (!Weapon || !GetOwner())
 	{
 		return;
 	}
-	USkeletalMeshComponent* Mesh = OwnerCharacter ? OwnerCharacter->GetMesh() : nullptr;
-	if (Mesh && Mesh->DoesSocketExist(CombatSockets::Hand))
+	USceneComponent* Parent = nullptr;
+	FName Socket = NAME_None;
+	if (ResolveAttachPoint(CombatSockets::Hand, Parent, Socket))
 	{
-		Weapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CombatSockets::Hand);
+		Weapon->AttachToComponent(Parent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+		Weapon->SetActorRelativeTransform(HandAttachOffset);
 	}
 	else
 	{
-		// No mannequin / socket yet: float the weapon at the right hip so it is still visible.
+		// No body at all: float the weapon at the right hip so it is still visible.
 		Weapon->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		Weapon->SetActorRelativeLocation(FVector(35.f, 22.f, 35.f));
 	}
@@ -158,15 +195,16 @@ void UCombatComponent::AttachWeaponToHolster(AWeaponBase* Weapon, const FWeaponD
 	{
 		return;
 	}
-	USkeletalMeshComponent* Mesh = OwnerCharacter ? OwnerCharacter->GetMesh() : nullptr;
-	if (Mesh && !Data.HolsterSocket.IsNone() && Mesh->DoesSocketExist(Data.HolsterSocket))
+	USceneComponent* Parent = nullptr;
+	FName Socket = NAME_None;
+	if (ResolveAttachPoint(Data.HolsterSocket, Parent, Socket))
 	{
-		Weapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, Data.HolsterSocket);
+		Weapon->AttachToComponent(Parent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
 		Weapon->SetActorHiddenInGame(false);
 	}
 	else
 	{
-		// Knife, or holster socket not authored yet: stow invisibly.
+		// Knife, or no holster point: stow invisibly.
 		Weapon->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		Weapon->SetActorHiddenInGame(true);
 	}
@@ -495,7 +533,7 @@ void UCombatComponent::FireHitscan()
 	const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Weapon, Params);
 	if (bHit)
 	{
-		const bool bHeadshot = Hit.BoneName == HeadBone;
+		const bool bHeadshot = IsHeadshot(Hit);
 		DealDamage(Hit, Direction, CurrentData.BaseDamage * (bHeadshot ? CurrentData.HeadshotMultiplier : 1.f));
 	}
 
