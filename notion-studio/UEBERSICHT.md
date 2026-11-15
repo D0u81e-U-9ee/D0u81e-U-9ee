@@ -69,6 +69,24 @@ Agent-Eintrag inkl. System Prompt (`agents/CreativeDirector_SystemPrompt.md`), D
 Creative Briefs und Creative Review Queue, neue Felder in Alex 2.0 Aufgaben, Seiten Brand
 Guidelines, Review Criteria, Playbook (inkl. n8n-Code) und Brief-Vorlage.
 
+
+## Alex 2.0 – fertig ausgebaut
+
+Mit `build_alex.py` nach `docs/ALEX_Optimierte_Agenten_Architektur.md` und `docs/ALEX_Master_Dokumentation_Final.md`:
+
+| Tier | Agenten |
+|---|---|
+| 1 · Master & Coordination | ALEX · TaskManager · TaskCreator |
+| 2 · Content & Creative | CreativeDirector · BrandStrategist · DesignConsultant · ContentWriter |
+| 3 · Technical | WebDeveloper · LaunchCoordinator |
+| 4 · Research & Communication | ResearchAnalyst (neu) · EmailManager · SystemAdmin |
+
+- Alle 12 Agenten: neuer Name, Full Name, Role, Specialization, Tools, **System Prompt** (`agents/`)
+- Status „Vorschlag“ in Alex 2.0 Aufgaben (TaskCreator)
+- Seite „ALEX 2.0 System-Dokumentation“ mit Architektur, Datenbanken, Workflow, n8n-To-dos
+- n8n-Code v2 in `n8n/` (Bugfix Specialization/Multi-Select, Creative Reviews, Überfällig/Heute, Logging)
+- Ansicht „Team“ in der Agents Database
+
 ## Ansichten (über den Notion-Connector angelegt)
 
 | Datenbank | Ansichten |
