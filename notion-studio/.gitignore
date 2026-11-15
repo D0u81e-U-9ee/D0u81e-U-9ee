@@ -1,3 +1,5 @@
 workspace_ids.json
 deleted_pages.json
 *.state.json
+n8n/workflows-test/
+__pycache__/

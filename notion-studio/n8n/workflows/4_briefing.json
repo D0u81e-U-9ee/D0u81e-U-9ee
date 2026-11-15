@@ -1,0 +1,595 @@
+{
+  "name": "ALEX Agentur · 4 Morgen-Briefing",
+  "nodes": [
+    {
+      "id": "da148b0a-e2cd-5715-afd7-5c453ad54878",
+      "name": "Mo–Fr 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4b86908d-7aa9-57c2-b66e-9262d19bb602",
+      "name": "Manuell starten",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        420
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "5cc9fcb7-5e0e-5d78-b814-b9c55265e39e",
+      "name": "Meine Aufgaben",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-8171-8cc4-f4f2494177f9/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"filter\": {\"property\": \"Status\", \"select\": {\"does_not_equal\": \"Erledigt\"}}, \"page_size\": 100}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "4705f16a-35b3-5121-af86-d25a67daddfd",
+      "name": "Offene Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-8156-af52-f7848d5197ed/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"filter\": {\"property\": \"Status\", \"select\": {\"does_not_equal\": \"Erledigt\"}}, \"page_size\": 100}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "488349b3-b168-5f85-a211-78e99a640251",
+      "name": "Content diese Woche",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-814c-94e7-ebed4e924f24/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({filter: {and: [{property: 'Veröffentlichung', date: {on_or_after: $now.toISODate()} }, {property: 'Veröffentlichung', date: {on_or_before: $now.plus({days: 7}).toISODate()} }]}, page_size: 100}) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "07943eda-b6d6-58d8-b57f-a36d94dd95b8",
+      "name": "Follow-ups",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-81ec-be27-f52bf2b0c1e4/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({filter: {and: [{property: 'Nächster Follow-up', date: {on_or_before: $now.toISODate()} }, {property: 'Status', select: {does_not_equal: 'Archiv'} }]}, page_size: 100}) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "4fd4b695-3b68-53ec-840a-1c07619bc4bb",
+      "name": "Projekte mit Deadline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-8185-860e-d8fb2921ab34/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({filter: {and: [{property: 'Deadline', date: {on_or_before: $now.plus({days: 14}).toISODate()} }, {property: 'Status', select: {does_not_equal: 'Abgeschlossen'} }]}, page_size: 100}) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "94d385d5-f82c-5ff9-80d0-e6a8f076563d",
+      "name": "Anfragen für dich",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1440,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-81f4-8c16-fee5224ffc2e/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"filter\": {\"or\": [{\"property\": \"Status\", \"select\": {\"equals\": \"Rückfrage\"}}, {\"property\": \"Status\", \"select\": {\"equals\": \"Wartet auf dich\"}}]}, \"page_size\": 100}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "93b28e39-4475-5439-b53c-8f879cec6386",
+      "name": "ALEX laden",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/419ed125-9f02-814f-baa6-f6e79ebd961d/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"filter\": {\"property\": \"Agent\", \"title\": {\"equals\": \"ALEX\"}}, \"page_size\": 1}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "728d229f-08e3-5d5f-aefa-87660e221f7c",
+      "name": "Briefing-Prompt bauen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const CFG = {\"db\": {\"jobs\": \"419ed125-9f02-8156-af52-f7848d5197ed\", \"anfragen\": \"419ed125-9f02-81f4-8c16-fee5224ffc2e\", \"agenten\": \"419ed125-9f02-814f-baa6-f6e79ebd961d\", \"protokoll\": \"419ed125-9f02-814b-83eb-f5a1f1e82354\", \"briefings\": \"419ed125-9f02-81fa-a7a6-e37fc37caedd\", \"aufgaben\": \"419ed125-9f02-8171-8cc4-f4f2494177f9\", \"content\": \"419ed125-9f02-814c-94e7-ebed4e924f24\", \"kunden\": \"419ed125-9f02-81ec-be27-f52bf2b0c1e4\", \"projekte\": \"419ed125-9f02-8185-860e-d8fb2921ab34\"}, \"defaultModel\": \"claude-opus-5-5\", \"fallbacks\": true};\n// ===== ALEX Agentur · Hilfsfunktionen (in jeden Code-Node eingebettet) =====\nconst LIMIT = 1900;\nfunction rtChunks(text) {\n  text = String(text ?? '');\n  const out = [];\n  for (let i = 0; i < text.length; i += LIMIT) out.push({ type: 'text', text: { content: text.slice(i, i + LIMIT) } });\n  return out.length ? out : [{ type: 'text', text: { content: '' } }];\n}\nfunction plain(prop) {\n  if (!prop) return '';\n  const arr = prop.title || prop.rich_text || [];\n  return arr.map(t => t.plain_text ?? t.text?.content ?? '').join('');\n}\nfunction sel(prop) { return prop?.select?.name || ''; }\nfunction relIds(prop) { return (prop?.relation || []).map(r => r.id); }\nfunction num(prop) {\n  if (!prop) return null;\n  if (prop.type === 'number') return prop.number;\n  if (prop.type === 'rollup') return prop.rollup?.number ?? null;\n  if (prop.type === 'formula') return prop.formula?.number ?? null;\n  return null;\n}\nfunction dateStr(prop) { return prop?.date?.start || ''; }\nfunction inlineRT(s) {\n  const out = [];\n  const push = (content, ann, link) => {\n    for (let i = 0; i < content.length; i += LIMIT) {\n      const t = { type: 'text', text: { content: content.slice(i, i + LIMIT) } };\n      if (link) t.text.link = { url: link };\n      if (ann) t.annotations = ann;\n      out.push(t);\n    }\n  };\n  const re = /(\\*\\*[^*]+\\*\\*|`[^`]+`|\\[[^\\]]+\\]\\([^)\\s]+\\))/g;\n  let last = 0, m;\n  while ((m = re.exec(s))) {\n    if (m.index > last) push(s.slice(last, m.index));\n    const tok = m[0];\n    if (tok.startsWith('**')) push(tok.slice(2, -2), { bold: true });\n    else if (tok.startsWith('`')) push(tok.slice(1, -1), { code: true });\n    else {\n      const mm = tok.match(/^\\[([^\\]]+)\\]\\(([^)\\s]+)\\)$/);\n      if (mm && /^https?:\\/\\//.test(mm[2])) push(mm[1], null, mm[2]); else push(tok);\n    }\n    last = m.index + tok.length;\n  }\n  if (last < s.length) push(s.slice(last));\n  return (out.length ? out : [{ type: 'text', text: { content: '' } }]).slice(0, 100);\n}\nfunction block(type, text, extra) { return { type, [type]: Object.assign({ rich_text: inlineRT(text) }, extra || {}) }; }\nfunction callout(text, emoji, color) {\n  return { type: 'callout', callout: { rich_text: rtChunks(text).slice(0, 100), icon: { type: 'emoji', emoji: emoji || '💡' }, color: color || 'gray_background' } };\n}\nfunction mdToBlocks(md, maxBlocks) {\n  maxBlocks = maxBlocks || 95;\n  const lines = String(md || '').replace(/\\r/g, '').split('\\n');\n  const blocks = [];\n  let i = 0;\n  while (i < lines.length) {\n    const line = lines[i];\n    const t = line.trim();\n    if (!t) { i++; continue; }\n    if (t.startsWith('```')) {\n      const lang = t.slice(3).trim();\n      const buf = []; i++;\n      while (i < lines.length && !lines[i].trim().startsWith('```')) { buf.push(lines[i]); i++; }\n      i++;\n      const allowed = ['javascript', 'python', 'json', 'html', 'css', 'bash', 'markdown', 'typescript', 'sql', 'yaml'];\n      blocks.push({ type: 'code', code: { rich_text: rtChunks(buf.join('\\n')).slice(0, 100), language: allowed.includes(lang) ? lang : 'plain text' } });\n      continue;\n    }\n    if (t.startsWith('|')) {\n      const rows = [];\n      while (i < lines.length && lines[i].trim().startsWith('|')) {\n        const r = lines[i].trim();\n        if (!/^\\|?\\s*:?-{2,}/.test(r.replace(/\\|/g, '|'))) {\n          const cells = r.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n          if (!cells.every(c => /^:?-{2,}:?$/.test(c))) rows.push(cells);\n        }\n        i++;\n      }\n      if (rows.length) {\n        const width = Math.min(Math.max(...rows.map(r => r.length)), 20);\n        blocks.push({ type: 'table', table: { table_width: width, has_column_header: true, has_row_header: false,\n          children: rows.slice(0, 100).map(r => ({ type: 'table_row', table_row: { cells: Array.from({ length: width }, (_, k) => inlineRT(r[k] || '')) } })) } });\n      }\n      continue;\n    }\n    let m;\n    if ((m = t.match(/^(#{1,6})\\s+(.*)$/))) {\n      const lvl = Math.min(m[1].length, 3);\n      blocks.push(block('heading_' + lvl, m[2]));\n    } else if (/^[-*]\\s+\\[( |x|X)\\]\\s+/.test(t)) {\n      const checked = /^[-*]\\s+\\[(x|X)\\]/.test(t);\n      blocks.push(block('to_do', t.replace(/^[-*]\\s+\\[( |x|X)\\]\\s+/, ''), { checked }));\n    } else if (/^[-*•]\\s+/.test(t)) {\n      blocks.push(block('bulleted_list_item', t.replace(/^[-*•]\\s+/, '')));\n    } else if (/^\\d+[.)]\\s+/.test(t)) {\n      blocks.push(block('numbered_list_item', t.replace(/^\\d+[.)]\\s+/, '')));\n    } else if (t.startsWith('>')) {\n      blocks.push(block('quote', t.replace(/^>\\s?/, '')));\n    } else if (/^(-{3,}|\\*{3,}|_{3,})$/.test(t)) {\n      blocks.push({ type: 'divider', divider: {} });\n    } else {\n      blocks.push(block('paragraph', t));\n    }\n    i++;\n  }\n  if (blocks.length > maxBlocks) {\n    const kept = blocks.slice(0, maxBlocks - 1);\n    kept.push(callout('Das Ergebnis ist länger als eine Notion-Anfrage erlaubt. Den vollständigen Text findest du im Feld „Ergebnis“.', '✂️', 'yellow_background'));\n    return kept;\n  }\n  return blocks;\n}\nfunction blocksToText(results) {\n  return (results || []).map(bl => {\n    const v = bl[bl.type] || {};\n    const txt = (v.rich_text || []).map(t => t.plain_text || '').join('');\n    if (!txt) return '';\n    if (bl.type.startsWith('heading')) return '## ' + txt;\n    if (bl.type === 'bulleted_list_item') return '- ' + txt;\n    if (bl.type === 'numbered_list_item') return '1. ' + txt;\n    if (bl.type === 'to_do') return (v.checked ? '- [x] ' : '- [ ] ') + txt;\n    return txt;\n  }).filter(Boolean).join('\\n');\n}\nfunction claudeText(r) { return (r.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n').trim(); }\nfunction claudeError(r) {\n  if (!r) return 'Keine Antwort';\n  if (r.error) return typeof r.error === 'object' ? (r.error.message || JSON.stringify(r.error)).slice(0, 1800) : String(r.error).slice(0, 1800);\n  if (!Array.isArray(r.content)) return 'Unerwartete Antwort: ' + JSON.stringify(r).slice(0, 500);\n  if (r.stop_reason === 'refusal') return 'Claude hat abgelehnt: ' + (r.stop_details?.explanation || r.stop_details?.category || '');\n  return '';\n}\nfunction withFallback(body) {\n  if (CFG.fallbacks && /opus|sonnet|fable/.test(body.model)) body.fallbacks = 'default';\n  return body;\n}\nfunction berlinNow() { return new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' }); }\nfunction berlinDate() { return new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }\nfunction isoToday() { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' }); }\nfunction logEntry(o) {\n  const props = {\n    Lauf: { title: rtChunks(String(o.titel).slice(0, 200)) },\n    Workflow: { select: { name: o.workflow } },\n    Status: { select: { name: o.status } },\n    'Dauer (Sek)': { number: o.dauer ?? null },\n    'Tokens Input': { number: o.usage?.input_tokens ?? null },\n    'Tokens Output': { number: o.usage?.output_tokens ?? null },\n    Modell: { rich_text: rtChunks(o.modell || '') },\n    Fehler: { rich_text: rtChunks(o.fehler || '') },\n    'n8n-Ausführung': { rich_text: rtChunks(String(o.lauf || '')) },\n  };\n  if (o.agent_id) props.Agent = { relation: [{ id: o.agent_id }] };\n  if (o.job_id) props.Job = { relation: [{ id: o.job_id }] };\n  return { parent: { database_id: CFG.db.protokoll }, properties: props };\n}\n// ===== Ende Hilfsfunktionen =====\n\n// Briefing · alle Daten sammeln und ALEX schreiben lassen\nconst get = n => $(n).first().json.results || [];\nconst heute = isoToday();\nconst aufgaben = get('Meine Aufgaben').map(p => { const P = p.properties; return {\n  t: plain(P['Aufgabe']), s: sel(P['Status']), pr: sel(P['Priorität']), f: dateStr(P['Fällig']), h: P['Heute']?.checkbox }; });\nconst jobs = get('Offene Jobs').map(p => { const P = p.properties; return {\n  t: plain(P['Job']), s: sel(P['Status']), pr: sel(P['Priorität']), f: dateStr(P['Fällig']), z: plain(P['Zusammenfassung']).slice(0, 200),\n  alt: (Date.now() - new Date(p.last_edited_time)) / 3600000 }; });\nconst content = get('Content diese Woche').map(p => { const P = p.properties; return `${dateStr(P['Veröffentlichung'])} · ${plain(P['Titel'])} (${(P['Plattform']?.multi_select || []).map(x => x.name).join(', ')}) – ${sel(P['Status'])}`; });\nconst follow = get('Follow-ups').map(p => { const P = p.properties; return `${plain(P['Name'])}${plain(P['Firma']) ? ' (' + plain(P['Firma']) + ')' : ''} – fällig ${dateStr(P['Nächster Follow-up'])}`; });\nconst projekte = get('Projekte mit Deadline').map(p => { const P = p.properties; return `${plain(P['Projekt'])} – Deadline ${dateStr(P['Deadline'])} – ${sel(P['Status'])}`; });\nconst anfragen = get('Anfragen für dich').map(p => { const P = p.properties; return `${plain(P['Anfrage'])} – ${sel(P['Status'])}${sel(P['Status']) === 'Rückfrage' ? ': ' + plain(P['Rückfrage von ALEX']).slice(0, 300) : ''}`; });\nconst alexPage = get('ALEX laden')[0];\nif (!alexPage) throw new Error('Agent „ALEX“ nicht gefunden');\nconst fmtA = x => `- ${x.f && x.f < heute ? '⚠️ ÜBERFÄLLIG ' : ''}${x.h ? '☀️ ' : ''}${x.t} [${x.pr || 'Normal'}]${x.f ? ' · fällig ' + x.f : ''} · ${x.s}`;\nconst freigabe = jobs.filter(j => j.s === 'Freigabe');\nconst fehler = jobs.filter(j => j.s === 'Fehler');\nconst haengt = jobs.filter(j => j.s === 'In Bearbeitung' && j.alt > 1);\nconst aktiv = jobs.filter(j => ['Bereit', 'In Bearbeitung', 'Review', 'Überarbeiten'].includes(j.s));\nconst user = `Schreibe Achims Morgen-Briefing für ${berlinDate()} (${heute}) im vorgegebenen Format. Nutze nur diese Daten:\n\n## Meine Aufgaben (offen)\n${aufgaben.map(fmtA).join('\\n') || '–'}\n## Jobs warten auf Freigabe\n${freigabe.map(j => `- ${j.t}: ${j.z}`).join('\\n') || '–'}\n## Jobs mit Fehler\n${fehler.map(j => `- ${j.t}`).join('\\n') || '–'}\n## Jobs hängen (seit > 1 Std. „In Bearbeitung“)\n${haengt.map(j => `- ${j.t}`).join('\\n') || '–'}\n## Team arbeitet an\n${aktiv.map(j => `- ${j.t} (${j.s})`).join('\\n') || '–'}\n## Anfragen, die auf Achim warten\n${anfragen.join('\\n') || '–'}\n## Projekte mit Deadline in 14 Tagen\n${projekte.join('\\n') || '–'}\n## Content in den nächsten 7 Tagen\n${content.join('\\n') || '–'}\n## Follow-ups fällig\n${follow.join('\\n') || '–'}\n\nGib nur das Briefing aus (Markdown, max. 2500 Zeichen). Lass leere Abschnitte weg.`;\nconst A = alexPage.properties;\nconst body = withFallback({ model: sel(A['Modell']) || CFG.defaultModel, max_tokens: 8000, system: plain(A['System Prompt']),\n  messages: [{ role: 'user', content: user }], output_config: { effort: 'medium' } });\nreturn [{ json: { claude_body: body, alex_id: alexPage.id, start: new Date().toISOString(), lauf_id: String($execution.id) } }];\n",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "c1e5be64-3d99-5654-a799-a493bc848e97",
+      "name": "Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2026-10-21"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "server-side-fallback-2026-07-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claude_body) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexClaudeCred01",
+          "name": "Anthropic · ALEX Agentur"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "e6e4b5f7-5e54-56f9-ba24-1ff481521ec6",
+      "name": "Briefing speichern",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const CFG = {\"db\": {\"jobs\": \"419ed125-9f02-8156-af52-f7848d5197ed\", \"anfragen\": \"419ed125-9f02-81f4-8c16-fee5224ffc2e\", \"agenten\": \"419ed125-9f02-814f-baa6-f6e79ebd961d\", \"protokoll\": \"419ed125-9f02-814b-83eb-f5a1f1e82354\", \"briefings\": \"419ed125-9f02-81fa-a7a6-e37fc37caedd\", \"aufgaben\": \"419ed125-9f02-8171-8cc4-f4f2494177f9\", \"content\": \"419ed125-9f02-814c-94e7-ebed4e924f24\", \"kunden\": \"419ed125-9f02-81ec-be27-f52bf2b0c1e4\", \"projekte\": \"419ed125-9f02-8185-860e-d8fb2921ab34\"}, \"defaultModel\": \"claude-opus-5-5\", \"fallbacks\": true};\n// ===== ALEX Agentur · Hilfsfunktionen (in jeden Code-Node eingebettet) =====\nconst LIMIT = 1900;\nfunction rtChunks(text) {\n  text = String(text ?? '');\n  const out = [];\n  for (let i = 0; i < text.length; i += LIMIT) out.push({ type: 'text', text: { content: text.slice(i, i + LIMIT) } });\n  return out.length ? out : [{ type: 'text', text: { content: '' } }];\n}\nfunction plain(prop) {\n  if (!prop) return '';\n  const arr = prop.title || prop.rich_text || [];\n  return arr.map(t => t.plain_text ?? t.text?.content ?? '').join('');\n}\nfunction sel(prop) { return prop?.select?.name || ''; }\nfunction relIds(prop) { return (prop?.relation || []).map(r => r.id); }\nfunction num(prop) {\n  if (!prop) return null;\n  if (prop.type === 'number') return prop.number;\n  if (prop.type === 'rollup') return prop.rollup?.number ?? null;\n  if (prop.type === 'formula') return prop.formula?.number ?? null;\n  return null;\n}\nfunction dateStr(prop) { return prop?.date?.start || ''; }\nfunction inlineRT(s) {\n  const out = [];\n  const push = (content, ann, link) => {\n    for (let i = 0; i < content.length; i += LIMIT) {\n      const t = { type: 'text', text: { content: content.slice(i, i + LIMIT) } };\n      if (link) t.text.link = { url: link };\n      if (ann) t.annotations = ann;\n      out.push(t);\n    }\n  };\n  const re = /(\\*\\*[^*]+\\*\\*|`[^`]+`|\\[[^\\]]+\\]\\([^)\\s]+\\))/g;\n  let last = 0, m;\n  while ((m = re.exec(s))) {\n    if (m.index > last) push(s.slice(last, m.index));\n    const tok = m[0];\n    if (tok.startsWith('**')) push(tok.slice(2, -2), { bold: true });\n    else if (tok.startsWith('`')) push(tok.slice(1, -1), { code: true });\n    else {\n      const mm = tok.match(/^\\[([^\\]]+)\\]\\(([^)\\s]+)\\)$/);\n      if (mm && /^https?:\\/\\//.test(mm[2])) push(mm[1], null, mm[2]); else push(tok);\n    }\n    last = m.index + tok.length;\n  }\n  if (last < s.length) push(s.slice(last));\n  return (out.length ? out : [{ type: 'text', text: { content: '' } }]).slice(0, 100);\n}\nfunction block(type, text, extra) { return { type, [type]: Object.assign({ rich_text: inlineRT(text) }, extra || {}) }; }\nfunction callout(text, emoji, color) {\n  return { type: 'callout', callout: { rich_text: rtChunks(text).slice(0, 100), icon: { type: 'emoji', emoji: emoji || '💡' }, color: color || 'gray_background' } };\n}\nfunction mdToBlocks(md, maxBlocks) {\n  maxBlocks = maxBlocks || 95;\n  const lines = String(md || '').replace(/\\r/g, '').split('\\n');\n  const blocks = [];\n  let i = 0;\n  while (i < lines.length) {\n    const line = lines[i];\n    const t = line.trim();\n    if (!t) { i++; continue; }\n    if (t.startsWith('```')) {\n      const lang = t.slice(3).trim();\n      const buf = []; i++;\n      while (i < lines.length && !lines[i].trim().startsWith('```')) { buf.push(lines[i]); i++; }\n      i++;\n      const allowed = ['javascript', 'python', 'json', 'html', 'css', 'bash', 'markdown', 'typescript', 'sql', 'yaml'];\n      blocks.push({ type: 'code', code: { rich_text: rtChunks(buf.join('\\n')).slice(0, 100), language: allowed.includes(lang) ? lang : 'plain text' } });\n      continue;\n    }\n    if (t.startsWith('|')) {\n      const rows = [];\n      while (i < lines.length && lines[i].trim().startsWith('|')) {\n        const r = lines[i].trim();\n        if (!/^\\|?\\s*:?-{2,}/.test(r.replace(/\\|/g, '|'))) {\n          const cells = r.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n          if (!cells.every(c => /^:?-{2,}:?$/.test(c))) rows.push(cells);\n        }\n        i++;\n      }\n      if (rows.length) {\n        const width = Math.min(Math.max(...rows.map(r => r.length)), 20);\n        blocks.push({ type: 'table', table: { table_width: width, has_column_header: true, has_row_header: false,\n          children: rows.slice(0, 100).map(r => ({ type: 'table_row', table_row: { cells: Array.from({ length: width }, (_, k) => inlineRT(r[k] || '')) } })) } });\n      }\n      continue;\n    }\n    let m;\n    if ((m = t.match(/^(#{1,6})\\s+(.*)$/))) {\n      const lvl = Math.min(m[1].length, 3);\n      blocks.push(block('heading_' + lvl, m[2]));\n    } else if (/^[-*]\\s+\\[( |x|X)\\]\\s+/.test(t)) {\n      const checked = /^[-*]\\s+\\[(x|X)\\]/.test(t);\n      blocks.push(block('to_do', t.replace(/^[-*]\\s+\\[( |x|X)\\]\\s+/, ''), { checked }));\n    } else if (/^[-*•]\\s+/.test(t)) {\n      blocks.push(block('bulleted_list_item', t.replace(/^[-*•]\\s+/, '')));\n    } else if (/^\\d+[.)]\\s+/.test(t)) {\n      blocks.push(block('numbered_list_item', t.replace(/^\\d+[.)]\\s+/, '')));\n    } else if (t.startsWith('>')) {\n      blocks.push(block('quote', t.replace(/^>\\s?/, '')));\n    } else if (/^(-{3,}|\\*{3,}|_{3,})$/.test(t)) {\n      blocks.push({ type: 'divider', divider: {} });\n    } else {\n      blocks.push(block('paragraph', t));\n    }\n    i++;\n  }\n  if (blocks.length > maxBlocks) {\n    const kept = blocks.slice(0, maxBlocks - 1);\n    kept.push(callout('Das Ergebnis ist länger als eine Notion-Anfrage erlaubt. Den vollständigen Text findest du im Feld „Ergebnis“.', '✂️', 'yellow_background'));\n    return kept;\n  }\n  return blocks;\n}\nfunction blocksToText(results) {\n  return (results || []).map(bl => {\n    const v = bl[bl.type] || {};\n    const txt = (v.rich_text || []).map(t => t.plain_text || '').join('');\n    if (!txt) return '';\n    if (bl.type.startsWith('heading')) return '## ' + txt;\n    if (bl.type === 'bulleted_list_item') return '- ' + txt;\n    if (bl.type === 'numbered_list_item') return '1. ' + txt;\n    if (bl.type === 'to_do') return (v.checked ? '- [x] ' : '- [ ] ') + txt;\n    return txt;\n  }).filter(Boolean).join('\\n');\n}\nfunction claudeText(r) { return (r.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n').trim(); }\nfunction claudeError(r) {\n  if (!r) return 'Keine Antwort';\n  if (r.error) return typeof r.error === 'object' ? (r.error.message || JSON.stringify(r.error)).slice(0, 1800) : String(r.error).slice(0, 1800);\n  if (!Array.isArray(r.content)) return 'Unerwartete Antwort: ' + JSON.stringify(r).slice(0, 500);\n  if (r.stop_reason === 'refusal') return 'Claude hat abgelehnt: ' + (r.stop_details?.explanation || r.stop_details?.category || '');\n  return '';\n}\nfunction withFallback(body) {\n  if (CFG.fallbacks && /opus|sonnet|fable/.test(body.model)) body.fallbacks = 'default';\n  return body;\n}\nfunction berlinNow() { return new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' }); }\nfunction berlinDate() { return new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }\nfunction isoToday() { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' }); }\nfunction logEntry(o) {\n  const props = {\n    Lauf: { title: rtChunks(String(o.titel).slice(0, 200)) },\n    Workflow: { select: { name: o.workflow } },\n    Status: { select: { name: o.status } },\n    'Dauer (Sek)': { number: o.dauer ?? null },\n    'Tokens Input': { number: o.usage?.input_tokens ?? null },\n    'Tokens Output': { number: o.usage?.output_tokens ?? null },\n    Modell: { rich_text: rtChunks(o.modell || '') },\n    Fehler: { rich_text: rtChunks(o.fehler || '') },\n    'n8n-Ausführung': { rich_text: rtChunks(String(o.lauf || '')) },\n  };\n  if (o.agent_id) props.Agent = { relation: [{ id: o.agent_id }] };\n  if (o.job_id) props.Job = { relation: [{ id: o.job_id }] };\n  return { parent: { database_id: CFG.db.protokoll }, properties: props };\n}\n// ===== Ende Hilfsfunktionen =====\n\n// Briefing · als Seite in „Briefings“ speichern\nconst { alex_id, start, lauf_id } = $('Briefing-Prompt bauen').first().json;\nconst r = $input.first().json;\nlet fehler = claudeError(r), text = fehler ? '' : claudeText(r);\nif (!fehler && !text) fehler = 'Leere Antwort';\nconst heute = isoToday();\nconst fokus = (text.match(/🎯\\s*(.+)/) || [])[1] || '';\nconst children = fehler ? [callout('Das Briefing konnte nicht erstellt werden: ' + fehler, '❌', 'red_background')] : mdToBlocks(text, 98);\nconst page = { parent: { database_id: CFG.db.briefings }, icon: { type: 'emoji', emoji: '☀️' },\n  properties: { Briefing: { title: rtChunks('Briefing · ' + berlinDate()) }, Datum: { date: { start: heute } },\n    Typ: { select: { name: 'Morgen-Briefing' } }, Fokus: { rich_text: rtChunks(fokus.slice(0, 500)) } }, children };\nconst log = logEntry({ titel: 'Briefing · ' + heute, workflow: 'Briefing', status: fehler ? 'Fehler' : 'Erfolg',\n  dauer: Math.round((Date.now() - new Date(start)) / 1000), usage: r.usage, modell: r.model, fehler, lauf: lauf_id, agent_id: alex_id });\nreturn [{ json: { page, log } }];\n",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "791c9f82-cf6a-5385-967f-1e28d79f9cc3",
+      "name": "Seite anlegen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.page) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    },
+    {
+      "id": "33c8628a-f52a-5595-96e2-b8ed75f54389",
+      "name": "Protokoll schreiben",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Briefing speichern').first().json.log) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alexNotionCred01",
+          "name": "Notion · ALEX Agentur"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Mo–Fr 07:00": {
+      "main": [
+        [
+          {
+            "node": "Meine Aufgaben",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manuell starten": {
+      "main": [
+        [
+          {
+            "node": "Meine Aufgaben",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meine Aufgaben": {
+      "main": [
+        [
+          {
+            "node": "Offene Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offene Jobs": {
+      "main": [
+        [
+          {
+            "node": "Content diese Woche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content diese Woche": {
+      "main": [
+        [
+          {
+            "node": "Follow-ups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Follow-ups": {
+      "main": [
+        [
+          {
+            "node": "Projekte mit Deadline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Projekte mit Deadline": {
+      "main": [
+        [
+          {
+            "node": "Anfragen für dich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anfragen für dich": {
+      "main": [
+        [
+          {
+            "node": "ALEX laden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ALEX laden": {
+      "main": [
+        [
+          {
+            "node": "Briefing-Prompt bauen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Briefing-Prompt bauen": {
+      "main": [
+        [
+          {
+            "node": "Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "main": [
+        [
+          {
+            "node": "Briefing speichern",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Briefing speichern": {
+      "main": [
+        [
+          {
+            "node": "Seite anlegen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seite anlegen": {
+      "main": [
+        [
+          {
+            "node": "Protokoll schreiben",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
