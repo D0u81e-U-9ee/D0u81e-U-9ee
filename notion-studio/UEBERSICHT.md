@@ -62,8 +62,27 @@ ACHIM GUTMANN – COMMAND CENTER        ← bestehend, oben verlinkt auf das HQ
 
 - **Daily Briefings**: Eine Automation legt täglich einen leeren Eintrag „Daily Briefing Template“
   an (bisher ca. 370). Bitte den n8n-Workflow prüfen; danach können diese Einträge gelöscht werden.
-- **Ansichten** (Board, Kalender, Timeline) lassen sich nicht per API anlegen. Die Checkliste
-  dafür steht auf der Seite „🧭 Start hier“.
+
+## Creative Director (Alex 2.0)
+
+Umgesetzt nach `docs/ALEX_CreativeDirector_Komplett.md` mit `build_creative_director.py`:
+Agent-Eintrag inkl. System Prompt (`agents/CreativeDirector_SystemPrompt.md`), Datenbanken
+Creative Briefs und Creative Review Queue, neue Felder in Alex 2.0 Aufgaben, Seiten Brand
+Guidelines, Review Criteria, Playbook (inkl. n8n-Code) und Brief-Vorlage.
+
+## Ansichten (über den Notion-Connector angelegt)
+
+| Datenbank | Ansichten |
+|---|---|
+| Alex 2.0 Aufgaben | ☀️ Heute · Board · Kalender |
+| Creative Review Queue | Review-Board · Wartet auf Review |
+| Creative Briefs | Brief-Pipeline · Deadlines |
+| Projekte | Pipeline · Timeline |
+| Content-Kalender | Kalender · Produktion |
+| Finanzen | Offene Rechnungen · Ergebnis-Verlauf |
+| Kunden | Follow-ups |
+| Inbox | Zu verarbeiten |
+| Ideen / Assets / Equipment / Meetings / Ziele | Board bzw. Kalender |
 
 ## Technik
 
