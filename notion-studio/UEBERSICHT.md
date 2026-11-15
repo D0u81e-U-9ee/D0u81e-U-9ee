@@ -9,28 +9,28 @@ Wochenroutinen, SOPs und Assistenten-Prompts.
 ```
 ACHIM GUTMANN – COMMAND CENTER        ← bestehend, oben verlinkt auf das HQ
 └── 🎬 Media Creative Studio HQ        ← Dashboard / Startseite
-├── 🧭 Start hier                      ← Anleitung & Bedienkonzept
-├── ☀️ Tagesplanung                    ← tägliche Assistenten-Routine
-├── 🔁 Wochenrückblick                 ← Weekly Review (Freitag)
-├── 🤖 Assistent-Prompts               ← fertige Prompts für Notion AI / Claude
-├── 📋 SOPs & Workflows
-│   ├── 🎥 Video-Produktion (Pre → Post → Delivery)
-│   ├── 🤝 Kunden-Onboarding
-│   ├── ♻️ Content-Repurposing
-│   └── 🧾 Angebot & Rechnung
-└── 🗄 System (Datenbanken)
-    ├── 📥 Inbox            – Schnellerfassung für alles
-    ├── ✅ Aufgaben         = „Alex 2.0 Aufgaben“ (bestehend, um Studio-Projekt, Heute, ⚠️ Warnung ergänzt)
-    ├── 🎞 Projekte         – Pipeline Idee → Abgeschlossen, Fortschritt automatisch
-    ├── 🎯 Ziele            – Quartalsziele, mit Projekten verknüpft
-    ├── 👥 Kunden & Kontakte – Mini-CRM mit Follow-up-Erinnerung
-    ├── 📅 Content-Kalender – YouTube, Instagram, TikTok, LinkedIn, Podcast …
-    ├── 💡 Ideen-Pool       – Ideen sammeln & bewerten
-    ├── 🗂 Asset-Bibliothek – Footage, Musik, LUTs, Templates, Lizenzen
-    ├── 🧰 Equipment        – Kamera, Licht, Audio, Status & Wert
-    ├── 💶 Finanzen         – Einnahmen/Ausgaben, Rechnungsstatus
-    ├── 📓 Meetings & Journal – Calls, Brainstorms, Reviews
-    └── 📚 Wissen & Vorlagen – Tutorials, Checklisten, Prompts
+    ├── 🧭 Start hier                      ← Anleitung & Bedienkonzept
+    ├── ☀️ Tagesplanung                    ← tägliche Assistenten-Routine
+    ├── 🔁 Wochenrückblick                 ← Weekly Review (Freitag)
+    ├── 🤖 Assistent-Prompts               ← fertige Prompts für Notion AI / Claude
+    ├── 📋 SOPs & Workflows
+    │   ├── 🎥 Video-Produktion (Pre → Post → Delivery)
+    │   ├── 🤝 Kunden-Onboarding
+    │   ├── ♻️ Content-Repurposing
+    │   └── 🧾 Angebot & Rechnung
+    └── 🗄 System (Datenbanken)
+        ├── 📥 Inbox            – Schnellerfassung für alles
+        ├── ✅ Aufgaben         = „Alex 2.0 Aufgaben“ (bestehend, um Studio-Projekt, Heute, ⚠️ Warnung ergänzt)
+        ├── 🎞 Projekte         – Pipeline Idee → Abgeschlossen, Fortschritt automatisch
+        ├── 🎯 Ziele            – Quartalsziele, mit Projekten verknüpft
+        ├── 👥 Kunden & Kontakte – Mini-CRM mit Follow-up-Erinnerung
+        ├── 📅 Content-Kalender – YouTube, Instagram, TikTok, LinkedIn, Podcast …
+        ├── 💡 Ideen-Pool       – Ideen sammeln & bewerten
+        ├── 🗂 Asset-Bibliothek – Footage, Musik, LUTs, Templates, Lizenzen
+        ├── 🧰 Equipment        – Kamera, Licht, Audio, Status & Wert
+        ├── 💶 Finanzen         – Einnahmen/Ausgaben, Rechnungsstatus
+        ├── 📓 Meetings & Journal – Calls, Brainstorms, Reviews
+        └── 📚 Wissen & Vorlagen – Tutorials, Checklisten, Prompts
 ```
 
 ## Verknüpfungen (Relationen)
