@@ -60,8 +60,7 @@ ACHIM GUTMANN – COMMAND CENTER        ← bestehend, oben verlinkt auf das HQ
 
 ## Offene Punkte / Hinweise
 
-- **Daily Briefings**: Eine Automation legt täglich einen leeren Eintrag „Daily Briefing Template“
-  an (bisher ca. 370). Bitte den n8n-Workflow prüfen; danach können diese Einträge gelöscht werden.
+- **Daily Briefings**: Die 370 leeren Einträge wurden am 15.11.2026 gelöscht (Papierkorb, 30 Tage wiederherstellbar). Ursache ist kein n8n-Workflow, sondern die Notion-Datenbankvorlage „Daily Briefing Template“ mit täglicher Wiederholung. Abschalten: Daily Briefings → Pfeil neben „Neu“ → „…“ an der Vorlage → Wiederholen → Aus.
 
 ## Creative Director (Alex 2.0)
 
